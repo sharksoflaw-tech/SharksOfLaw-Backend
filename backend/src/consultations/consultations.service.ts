@@ -10,14 +10,14 @@ import { Lawyer } from '../lawyers/lawyer.entity';
 @Injectable()
 export class ConsultationsService {
   constructor(
-    @InjectRepository(Consultation)
-    private readonly repo: Repository<Consultation>,
+      @InjectRepository(Consultation)
+      private readonly repo: Repository<Consultation>,
 
-    @InjectRepository(LegalIssue)
-    private readonly legalRepo: Repository<LegalIssue>,
+      @InjectRepository(LegalIssue)
+      private readonly legalRepo: Repository<LegalIssue>,
 
-    @InjectRepository(Lawyer)
-    private readonly lawyerRepo: Repository<Lawyer>,
+      @InjectRepository(Lawyer)
+      private readonly lawyerRepo: Repository<Lawyer>,
   ) {}
 
   async create(dto: CreateConsultationDto) {
@@ -29,7 +29,6 @@ export class ConsultationsService {
       throw new NotFoundException('Invalid legal issue');
     }
 
-    // FIX: properly typed lawyer object
     let lawyer: Lawyer | null = null;
 
     if (dto.lawyerId) {
@@ -45,9 +44,15 @@ export class ConsultationsService {
       phone: dto.phone,
       code: dto.code,
       caseDetails: dto.caseDetails,
-      razorpayOrderId: dto.razorpayOrderId,
-      razorpayPaymentId: dto.razorpayPaymentId,
-      legalIssue: legalIssue,
+
+      // ⛔️ REMOVED Razorpay fields
+      // razorpayOrderId: dto.razorpayOrderId,
+      // razorpayPaymentId: dto.razorpayPaymentId,
+
+      // If PhonePe adds any fields, add them here later:
+      // phonepeTransactionId: dto.phonepeTransactionId,
+
+      legalIssue,
       lawyer: lawyer || undefined,
     });
 

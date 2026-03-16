@@ -3,10 +3,9 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LegalIssuesModule } from './legal-issues/legal-issues.module';
 import { ConsultationsModule } from './consultations/consultations.module';
-import { PaymentsModule } from './payments/payments.module';
 import { ContactModule } from './contact/contact.module';
 import { TestimonialsModule } from './testimonials/testimonials.module';
-import {PhonePeModule} from "./payments-phonepe/phonepe.module";
+import { PhonePeModule } from "./payments-phonepe/phonepe.module";
 
 @Module({
   imports: [
@@ -20,7 +19,6 @@ import {PhonePeModule} from "./payments-phonepe/phonepe.module";
     LawyersModule,
     LegalIssuesModule,
     ConsultationsModule,
-    PaymentsModule,
     ContactModule,
     TestimonialsModule,
   ],

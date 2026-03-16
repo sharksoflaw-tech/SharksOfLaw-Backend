@@ -30,11 +30,12 @@ export class CreateConsultationDto {
     @IsString()
     caseDetails?: string;
 
-    @IsOptional()
-    @IsString()
-    razorpayOrderId?: string;
+    // ❌ REMOVED Razorpay fields
+    // razorpayOrderId?: string;
+    // razorpayPaymentId?: string;
 
+    // ✅ If PhonePe adds transaction reference later, add like:
     @IsOptional()
     @IsString()
-    razorpayPaymentId?: string;
+    phonepeTransactionId?: string;
 }
