@@ -13,45 +13,47 @@ export class PhonePeService {
     ) {}
 
     private readonly merchantId = process.env.PHONEPE_MERCHANT_ID;
-    private readonly saltKey = process.env.PHONEPE_SALT_KEY;
-    private readonly saltIndex = process.env.PHONEPE_SALT_INDEX;
-    private readonly baseUrl = 'https://api.phonepe.com/apis/hermes/pay';
+    private readonly apiKey = process.env.PHONEPE_API_KEY;
+    private readonly backendUrl = process.env.BACKEND_URL;
 
-    // Step 1 - Initiate a payment
+    private readonly baseUrl =
+        'https://api-preprod.phonepe.com/apis/pg-sandbox/v1/pay';
+
     async initiatePayment(consultationId: number, amount: number) {
         const merchantTransactionId = `MT_${Date.now()}`;
 
         const payload = {
             merchantId: this.merchantId,
             merchantTransactionId,
-            amount: amount * 100, // in paise
-            merchantOrderId: consultationId.toString(),
-            redirectUrl: `${process.env.BACKEND_URL}/phonepe/callback`,
-            callbackUrl: `${process.env.BACKEND_URL}/phonepe/callback`,
-            mobileNumber: '9999999999',
+            merchantUserId: "USER_" + consultationId,
+            amount: amount * 100,
+            redirectUrl: `${this.backendUrl}/api/phonepe/callback`,
+            callbackUrl: `${this.backendUrl}/api/phonepe/callback`,
+            mobileNumber: "9999999999",
             paymentInstrument: {
-                type: 'PAY_PAGE',
-            },
+                type: "PAY_PAGE"
+            }
         };
 
-        const base64Payload = Buffer.from(JSON.stringify(payload)).toString('base64');
-        const checksum = crypto
-            .createHash('sha256')
-            .update(base64Payload + '/pg/v1/pay' + this.saltKey)
-            .digest('hex') + '###' + this.saltIndex;
+        // NEW authentication → HMAC256(API_KEY + payload)
+        const bodyString = JSON.stringify(payload);
+        const hmac = crypto
+            .createHmac('sha256', this.apiKey)
+            .update(bodyString)
+            .digest('hex');
+
+        const headers = {
+            "Content-Type": "application/json",
+            "X-VERIFY": hmac,
+            "X-MERCHANT-ID": this.merchantId
+        };
 
         const response = await axios.post(
-            `${this.baseUrl}/pg/v1/pay`,
-            { request: base64Payload },
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-VERIFY': checksum,
-                },
-            },
+            this.baseUrl,
+            payload,
+            { headers }
         );
 
-        // Save info
         await this.repo.update(consultationId, {
             phonepeMerchantTransactionId: merchantTransactionId,
             paymentStatus: 'PENDING',
@@ -60,7 +62,6 @@ export class PhonePeService {
         return response.data;
     }
 
-    // Step 2 - Handle callback
     async handleCallback(body: any) {
         const data = body.data;
 
