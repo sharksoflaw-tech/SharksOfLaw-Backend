@@ -6,6 +6,7 @@ import { ConsultationsModule } from './consultations/consultations.module';
 import { PaymentsModule } from './payments/payments.module';
 import { ContactModule } from './contact/contact.module';
 import { TestimonialsModule } from './testimonials/testimonials.module';
+import {PhonePeModule} from "./payments-phonepe/phonepe.module";
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { TestimonialsModule } from './testimonials/testimonials.module';
       autoLoadEntities: true,
       synchronize: true,
     }),
+    PhonePeModule,
     LawyersModule,
     LegalIssuesModule,
     ConsultationsModule,
