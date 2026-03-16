@@ -1,11 +1,13 @@
-import { LawyersModule } from './lawyers/lawyers.module';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { LawyersModule } from './lawyers/lawyers.module';
 import { LegalIssuesModule } from './legal-issues/legal-issues.module';
 import { ConsultationsModule } from './consultations/consultations.module';
 import { ContactModule } from './contact/contact.module';
 import { TestimonialsModule } from './testimonials/testimonials.module';
 import { PhonePeModule } from "./payments-phonepe/phonepe.module";
+import {AppController} from "./app.controller";
+import {AppService} from "./app.service";
 
 @Module({
   imports: [
@@ -14,6 +16,7 @@ import { PhonePeModule } from "./payments-phonepe/phonepe.module";
       url: process.env.DATABASE_URL,
       autoLoadEntities: true,
       synchronize: true,
+      ssl: { rejectUnauthorized: false },
     }),
     PhonePeModule,
     LawyersModule,
@@ -22,5 +25,7 @@ import { PhonePeModule } from "./payments-phonepe/phonepe.module";
     ContactModule,
     TestimonialsModule,
   ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

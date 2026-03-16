@@ -1,9 +1,17 @@
-import { Body, Controller, Get, Param, Post, Patch, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Delete,
+} from '@nestjs/common';
 import { ConsultationsService } from './consultations.service';
 import { CreateConsultationDto } from './dto/create-consultation.dto';
 import { UpdateConsultationDto } from './dto/update-consultation.dto';
 
-@Controller('consultations')
+@Controller('consultations') // ✅ matches /api/consultations with global prefix
 export class ConsultationsController {
   constructor(private readonly consultationsService: ConsultationsService) {}
 
