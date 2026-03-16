@@ -12,9 +12,9 @@ export class PhonePeService {
         private readonly repo: Repository<Consultation>,
     ) {}
 
-    private readonly merchantId = process.env.PHONEPE_MERCHANT_ID;
-    private readonly apiKey = process.env.PHONEPE_API_KEY;
-    private readonly backendUrl = process.env.BACKEND_URL;
+    private readonly merchantId = process.env.PHONEPE_MERCHANT_ID || '';
+    private readonly apiKey = process.env.PHONEPE_API_KEY || '';
+    private readonly backendUrl = process.env.BACKEND_URL || '';
 
     private readonly baseUrl =
         'https://api-preprod.phonepe.com/apis/pg-sandbox/v1/pay';
