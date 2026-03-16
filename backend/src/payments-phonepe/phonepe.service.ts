@@ -46,12 +46,13 @@ export class PhonePeService {
 
         // Step 3: Hit Sandbox URL
         const response = await axios.post(
-            `${this.baseUrl}/pay`, // 👈 Correct path now
+            `${this.baseUrl}/v1/pay`, // 👈 Correct path now
             { request: base64Payload },
             {
                 headers: {
                     'Content-Type': 'application/json',
                     'X-VERIFY': checksum,
+                    'X-MERCHANT-ID': this.merchantId,
                 },
             },
         );
