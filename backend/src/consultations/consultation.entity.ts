@@ -34,8 +34,8 @@ export class Consultation {
   @Column({ default: 'NEW' })
   status: 'NEW' | 'IN_PROGRESS' | 'COMPLETED';
 
-  @ManyToOne(() => LegalIssue, { eager: true })
-  legalIssue: LegalIssue;
+  @ManyToOne(() => LegalIssue, { eager: true, nullable: true })
+  legalIssue: LegalIssue | null
 
   @ManyToOne(() => Lawyer, { eager: true, nullable: true })
   lawyer: Lawyer;

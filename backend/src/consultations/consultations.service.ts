@@ -21,13 +21,16 @@ export class ConsultationsService {
   ) {}
 
   async create(dto: CreateConsultationDto) {
-    const legalIssue = await this.legalRepo.findOne({
-      where: { id: dto.legalIssueId },
-    });
 
-    if (!legalIssue) {
-      throw new NotFoundException('Invalid legal issue');
+    let legalIssue: LegalIssue | null = null;
+
+    if (dto.legalIssueId) {
+      legalIssue = await this.legalRepo.findOne({ where: { id: dto.legalIssueId } });
+      if (!legalIssue) {
+        throw new NotFoundException('Invalid legal issue');
+      }
     }
+
 
     let lawyer: Lawyer | null = null;
 

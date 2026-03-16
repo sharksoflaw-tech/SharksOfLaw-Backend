@@ -19,6 +19,7 @@ export class CreateConsultationDto {
     @IsString()
     code?: string;
 
+    @IsOptional()
     @IsNumber()
     legalIssueId: number;
 
