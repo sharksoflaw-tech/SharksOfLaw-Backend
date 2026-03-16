@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber } from "class-validator";
+import { IsString, IsOptional, IsNumber, IsIn } from "class-validator";
 
 export class CreateConsultationDto {
     @IsString()
@@ -30,12 +30,23 @@ export class CreateConsultationDto {
     @IsString()
     caseDetails?: string;
 
-    // ❌ REMOVED Razorpay fields
-    // razorpayOrderId?: string;
-    // razorpayPaymentId?: string;
+    // ---------------------
+    // ✅ PHONEPE FIELDS
+    // ---------------------
 
-    // ✅ If PhonePe adds transaction reference later, add like:
+    @IsOptional()
+    @IsString()
+    phonepeMerchantTransactionId?: string;
+
     @IsOptional()
     @IsString()
     phonepeTransactionId?: string;
+
+    @IsOptional()
+    @IsString()
+    phonepeProviderReferenceId?: string;
+
+    @IsOptional()
+    @IsIn(['PENDING', 'SUCCESS', 'FAILED'])
+    paymentStatus?: 'PENDING' | 'SUCCESS' | 'FAILED';
 }

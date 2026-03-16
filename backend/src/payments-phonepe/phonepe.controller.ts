@@ -1,13 +1,17 @@
-import { Controller, Post, Body } from "@nestjs/common";
-import { PhonePeService } from "./phonepe.service";
+import { Controller, Post, Body, Get, Query } from '@nestjs/common';
+import { PhonePeService } from './phonepe.service';
 
-@Controller("phonepe")
+@Controller('phonepe')
 export class PhonePeController {
-    constructor(private readonly phonepe: PhonePeService) {}
+    constructor(private readonly phonePeService: PhonePeService) {}
 
-    @Post("create-order")
-    async createOrder(@Body() body: { amount: number; customerId: string }) {
-        const redirectUrl = await this.phonepe.createPayment(body.amount, body.customerId);
-        return { redirectUrl };
+    @Post('initiate')
+    initiatePayment(@Body() body: { consultationId: number; amount: number }) {
+        return this.phonePeService.initiatePayment(body.consultationId, body.amount);
+    }
+
+    @Post('callback')
+    async callback(@Body() body: any) {
+        return this.phonePeService.handleCallback(body);
     }
 }

@@ -1,47 +1,80 @@
-import { Injectable, InternalServerErrorException } from "@nestjs/common";
-import axios from "axios";
-import * as crypto from "crypto";
+import { Injectable } from '@nestjs/common';
+import axios from 'axios';
+import * as crypto from 'crypto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Consultation } from '../consultations/consultation.entity';
 
 @Injectable()
 export class PhonePeService {
-    private merchantId = process.env.PHONEPE_MERCHANT_ID;
-    private saltKey = process.env.PHONEPE_SALT_KEY;
-    private saltIndex = process.env.PHONEPE_SALT_INDEX;
-    private baseUrl = process.env.PHONEPE_BASE_URL;
+    constructor(
+        @InjectRepository(Consultation)
+        private readonly repo: Repository<Consultation>,
+    ) {}
 
-    async createPayment(amount: number, customerId: string) {
+    private readonly merchantId = process.env.PHONEPE_MERCHANT_ID;
+    private readonly saltKey = process.env.PHONEPE_SALT_KEY;
+    private readonly saltIndex = process.env.PHONEPE_SALT_INDEX;
+    private readonly baseUrl = 'https://api.phonepe.com/apis/hermes/pay';
+
+    // Step 1 - Initiate a payment
+    async initiatePayment(consultationId: number, amount: number) {
+        const merchantTransactionId = `MT_${Date.now()}`;
+
         const payload = {
             merchantId: this.merchantId,
-            merchantTransactionId: "txn_" + Date.now(),
-            merchantUserId: customerId,
-            amount: amount * 100,
-            redirectUrl: `${process.env.FRONTEND_REDIRECT_URL}?txnId=txn_${Date.now()}`,
-            redirectMode: "REDIRECT",
-            mobileNumber: "9999999999",
+            merchantTransactionId,
+            amount: amount * 100, // in paise
+            merchantOrderId: consultationId.toString(),
+            redirectUrl: `${process.env.BACKEND_URL}/phonepe/callback`,
+            callbackUrl: `${process.env.BACKEND_URL}/phonepe/callback`,
+            mobileNumber: '9999999999',
             paymentInstrument: {
-                type: "PAY_PAGE",
+                type: 'PAY_PAGE',
             },
         };
 
-        const payloadBase64 = Buffer.from(JSON.stringify(payload)).toString("base64");
-        const hashString = payloadBase64 + "/pg/v1/pay" + this.saltKey;
-        const sha256Hash = crypto.createHash("sha256").update(hashString).digest("hex");
-        const finalXHeader = sha256Hash + "###" + this.saltIndex;
+        const base64Payload = Buffer.from(JSON.stringify(payload)).toString('base64');
+        const checksum = crypto
+            .createHash('sha256')
+            .update(base64Payload + '/pg/v1/pay' + this.saltKey)
+            .digest('hex') + '###' + this.saltIndex;
 
-        const res = await axios.post(
+        const response = await axios.post(
             `${this.baseUrl}/pg/v1/pay`,
-            { request: payloadBase64 },
+            { request: base64Payload },
             {
                 headers: {
-                    "Content-Type": "application/json",
-                    "X-VERIFY": finalXHeader,
-                    "X-MERCHANT-ID": this.merchantId,
+                    'Content-Type': 'application/json',
+                    'X-VERIFY': checksum,
                 },
             },
         );
 
-        if (!res.data.success) throw new InternalServerErrorException("PhonePe order creation failed");
+        // Save info
+        await this.repo.update(consultationId, {
+            phonepeMerchantTransactionId: merchantTransactionId,
+            paymentStatus: 'PENDING',
+        });
 
-        return res.data.data.instrumentResponse.redirectInfo.url;
+        return response.data;
+    }
+
+    // Step 2 - Handle callback
+    async handleCallback(body: any) {
+        const data = body.data;
+
+        const updateData = {
+            phonepeTransactionId: data.transactionId,
+            phonepeProviderReferenceId: data.providerReferenceId,
+            paymentStatus: data.status,
+        };
+
+        await this.repo.update(
+            { phonepeMerchantTransactionId: data.merchantTransactionId },
+            updateData,
+        );
+
+        return { success: true };
     }
 }

@@ -40,11 +40,24 @@ export class Consultation {
   @ManyToOne(() => Lawyer, { eager: true, nullable: true })
   lawyer: Lawyer;
 
-  @Column({ nullable: true })
-  razorpayOrderId?: string;
+  // ---------------------
+  // ✅ PHONEPE FIELDS
+  // ---------------------
 
   @Column({ nullable: true })
-  razorpayPaymentId?: string;
+  phonepeMerchantTransactionId?: string; // You generate this
+
+  @Column({ nullable: true })
+  phonepeTransactionId?: string; // PhonePe transaction ID
+
+  @Column({ nullable: true })
+  phonepeProviderReferenceId?: string; // PhonePe provider reference
+
+  @Column({
+    type: 'varchar',
+    nullable: true,
+  })
+  paymentStatus?: 'PENDING' | 'SUCCESS' | 'FAILED';
 
   @CreateDateColumn()
   createdAt: Date;
