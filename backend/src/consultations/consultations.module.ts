@@ -3,8 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Consultation } from './consultation.entity';
 import { LegalIssue } from '../legal-issues/legal-issue.entity';
 import { Lawyer } from '../lawyers/lawyer.entity';
-import { ConsultationsController } from './consultations.controller';
 import { ConsultationsService } from './consultations.service';
+import { ConsultationsController } from './consultations.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Consultation, LegalIssue, Lawyer])],

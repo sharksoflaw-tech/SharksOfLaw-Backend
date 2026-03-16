@@ -1,42 +1,34 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Param,
-  Body,
-  Patch,
-  Delete,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Patch, Delete } from '@nestjs/common';
 import { ConsultationsService } from './consultations.service';
 import { CreateConsultationDto } from './dto/create-consultation.dto';
 import { UpdateConsultationDto } from './dto/update-consultation.dto';
 
-@Controller()
+@Controller('consultations')
 export class ConsultationsController {
-  constructor(private readonly service: ConsultationsService) {}
+  constructor(private readonly consultationsService: ConsultationsService) {}
 
-  @Post('consultations')
+  @Post()
   create(@Body() dto: CreateConsultationDto) {
-    return this.service.create(dto);
+    return this.consultationsService.create(dto);
   }
 
-  @Get('admin/consultations')
+  @Get()
   findAll() {
-    return this.service.findAll();
+    return this.consultationsService.findAll();
   }
 
-  @Get('admin/consultations/:id')
+  @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.service.findOne(Number(id));
+    return this.consultationsService.findOne(+id);
   }
 
-  @Patch('admin/consultations/:id')
+  @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateConsultationDto) {
-    return this.service.update(Number(id), dto);
+    return this.consultationsService.update(+id, dto);
   }
 
-  @Delete('admin/consultations/:id')
+  @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.service.remove(Number(id));
+    return this.consultationsService.remove(+id);
   }
 }
