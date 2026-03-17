@@ -47,6 +47,8 @@ export class ConsultationsService {
       phone: dto.phone,
       code: dto.code,
       caseDetails: dto.caseDetails,
+      selectedPlan: dto.selectedPlan,
+      language: dto.language,
 
       // ⛔️ REMOVED Razorpay fields
       // razorpayOrderId: dto.razorpayOrderId,

@@ -40,6 +40,12 @@ export class Consultation {
   @ManyToOne(() => Lawyer, { eager: true, nullable: true })
   lawyer: Lawyer;
 
+  @Column({ nullable: true })
+  selectedPlan?: string;
+
+  @Column({ nullable: true })
+  language?: string;
+
   // ---------------------
   // ✅ PHONEPE FIELDS
   // ---------------------

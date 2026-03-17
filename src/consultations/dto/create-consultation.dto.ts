@@ -31,8 +31,18 @@ export class CreateConsultationDto {
     @IsString()
     caseDetails?: string;
 
+    // ✅ ADD THESE (THIS FIXES YOUR ERROR)
+
+    @IsOptional()
+    @IsString()
+    selectedPlan?: string;
+
+    @IsOptional()
+    @IsString()
+    language?: string;
+
     // ---------------------
-    // ✅ PHONEPE FIELDS
+    // PHONEPE FIELDS
     // ---------------------
 
     @IsOptional()
