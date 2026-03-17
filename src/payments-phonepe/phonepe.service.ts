@@ -76,6 +76,10 @@ export class PhonePeService {
 
             const merchantTransactionId = `MT_${Date.now()}`;
 
+            if (!this.backendUrl) {
+                throw new Error("BACKEND_URL is not set");
+            }
+
             // ✅ STEP 2: Prepare payload
             const payload = {
                 merchantId: this.clientId, // ✅ In V2, this is clientId
@@ -84,7 +88,7 @@ export class PhonePeService {
                 redirectUrl: `${this.backendUrl}/api/phonepe/callback`,
                 callbackUrl: `${this.backendUrl}/api/phonepe/callback`,
                 merchantUserId: `USER_${consultationId}`, // 🔥 REQUIRED
-                mobileNumber: '9999999999',
+                mobileNumber: consultation.phone || '9999999999',
                 paymentFlow: {
                     type: 'PG_CHECKOUT',
                 },
