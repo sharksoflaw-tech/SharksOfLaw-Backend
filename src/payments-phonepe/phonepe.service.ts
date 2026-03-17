@@ -19,7 +19,8 @@ export class PhonePeService {
 
     // ✅ PRODUCTION URLs
     private readonly AUTH_URL =
-        'https://api.phonepe.com/apis/identity-manager/v1/oauth/token';
+        // 'https://api.phonepe.com/apis/identity-manager/v1/oauth/token';
+        'https://api-preprod.phonepe.com/apis/pg-sandbox/identity-manager/v1/oauth/token';
 
     private readonly PAYMENT_URL =
         // 'https://api.phonepe.com/apis/hermes/checkout/v2/pay';
