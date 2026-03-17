@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
@@ -7,20 +8,30 @@ async function bootstrap() {
     // ✅ Global prefix
     app.setGlobalPrefix('api');
 
-    // ✅ CORS configuration
-    const corsEnv = process.env.CORS_ORIGIN || process.env.CORS_ORIGINS;
-    const allowedOrigins = corsEnv
-        ? corsEnv.split(',').map((o) => o.trim())
-        : ['http://localhost:3000'];
+    // ✅ Global validation (important)
+    app.useGlobalPipes(
+        new ValidationPipe({
+            whitelist: true,
+            forbidNonWhitelisted: true,
+        }),
+    );
 
+    // ✅ CORS (FIXED - no dependency on missing env)
     app.enableCors({
-        origin: allowedOrigins,
-        methods: 'GET,POST,PATCH,DELETE,OPTIONS',
-        allowedHeaders: 'Content-Type, Authorization',
+        origin: [
+            'http://localhost:3000',
+            'http://localhost:3001',
+            'https://sharks-of-law-frontend.vercel.app',
+        ],
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+        allowedHeaders: '*',
         credentials: true,
     });
 
     const port = process.env.PORT || 3000;
     await app.listen(port);
+
+    console.log(`🚀 Server running on port ${port}`);
 }
+
 bootstrap();
