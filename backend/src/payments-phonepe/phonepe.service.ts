@@ -1,6 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import axios from 'axios';
-import * as crypto from 'crypto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Consultation } from '../consultations/consultation.entity';
@@ -12,74 +11,116 @@ export class PhonePeService {
         private readonly repo: Repository<Consultation>,
     ) {}
 
-    private readonly merchantId = process.env.PHONEPE_MERCHANT_ID;
-    private readonly saltKey = process.env.PHONEPE_SALT_KEY;
-    private readonly saltIndex = process.env.PHONEPE_SALT_INDEX;
-    private readonly backendUrl = process.env.BACKEND_URL;
+    private readonly clientId: string = process.env.PHONEPE_CLIENT_ID || '';
+    private readonly clientSecret: string = process.env.PHONEPE_CLIENT_SECRET || '';
+    private readonly clientVersion = '1';
 
-    // ★★★ Correct Sandbox Base Path ★★★
-    private readonly baseUrl = process.env.PHONEPE_BASE_URL;
+    private readonly backendUrl: string = process.env.BACKEND_URL || '';
 
-    async initiatePayment(consultationId: number, amount: number) {
-        const merchantTransactionId = `MT_${Date.now()}`;
+    // ✅ PRODUCTION URLs
+    private readonly AUTH_URL =
+        'https://api.phonepe.com/apis/identity-manager/v1/oauth/token';
 
-        const payload = {
-            merchantId: this.merchantId,
-            merchantTransactionId,
-            amount: amount * 100, // paise
-            merchantOrderId: consultationId.toString(),
-            redirectUrl: `${this.backendUrl}/api/phonepe/callback`,
-            callbackUrl: `${this.backendUrl}/api/phonepe/callback`,
-            mobileNumber: '9999999999',
-            paymentInstrument: {
-                type: 'PAY_PAGE',
-            },
-        };
+    private readonly PAYMENT_URL =
+        'https://api.phonepe.com/apis/hermes/checkout/v2/pay';
 
-        // Step 1: Payload -> Base64
-        const base64Payload = Buffer.from(JSON.stringify(payload)).toString('base64');
-
-        // Step 2: Checksum must match EXACT endpoint path
-        const toSign = base64Payload + '/pg/v1/pay' + this.saltKey;
-        const sha256 = crypto.createHash('sha256').update(toSign).digest('hex');
-        const checksum = sha256 + '###' + this.saltIndex;
-
-        // Step 3: Hit Sandbox URL
-        const response = await axios.post(
-            `${this.baseUrl}/v1/pay`, // 👈 Correct path now
-            { request: base64Payload },
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-VERIFY': checksum,
-                    'X-MERCHANT-ID': this.merchantId,
+    /**
+     * STEP 1: Get OAuth Token
+     */
+    private async getAccessToken(): Promise<string> {
+        try {
+            const response = await axios.post(
+                this.AUTH_URL,
+                new URLSearchParams(
+                    {
+                        client_id: this.clientId,
+                        client_secret: this.clientSecret,
+                        client_version: this.clientVersion,
+                        grant_type: 'client_credentials',
+                    } as Record<string, string>,
+                ),
+                {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
                 },
-            },
-        );
+            );
 
-        // Save metadata
-        await this.repo.update(consultationId, {
-            phonepeMerchantTransactionId: merchantTransactionId,
-            paymentStatus: 'PENDING',
-        });
-
-        return response.data;
+            return response.data.access_token;
+        } catch (error) {
+            console.error(
+                'PhonePe Auth Error:',
+                error.response?.data || error.message,
+            );
+            throw new InternalServerErrorException('PhonePe auth failed');
+        }
     }
 
+    /**
+     * STEP 2: Initiate Payment
+     */
+    async initiatePayment(consultationId: number, amount: number) {
+        try {
+            const token = await this.getAccessToken();
+
+            const merchantTransactionId = `MT_${Date.now()}`;
+
+            const payload = {
+                merchantId: this.clientId, // ✅ In V2, this is clientId
+                merchantTransactionId,
+                amount: Math.floor(amount * 100), // convert to paise
+                redirectUrl: `${this.backendUrl}/api/phonepe/callback`,
+                callbackUrl: `${this.backendUrl}/api/phonepe/callback`,
+                paymentFlow: {
+                    type: 'PG_CHECKOUT',
+                },
+            };
+
+            const response = await axios.post(this.PAYMENT_URL, payload, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            // Save transaction details
+            await this.repo.update(consultationId, {
+                phonepeMerchantTransactionId: merchantTransactionId,
+                paymentStatus: 'PENDING',
+            });
+
+            return response.data;
+        } catch (error) {
+            console.error(
+                'PhonePe Payment Error:',
+                error.response?.data || error.message,
+            );
+            throw new InternalServerErrorException('Payment initiation failed');
+        }
+    }
+
+    /**
+     * STEP 3: Handle Callback (Webhook)
+     */
     async handleCallback(body: any) {
-        const data = body.data;
+        try {
+            const data = body;
 
-        const updateData = {
-            phonepeTransactionId: data.transactionId,
-            phonepeProviderReferenceId: data.providerReferenceId,
-            paymentStatus: data.status,
-        };
+            const updateData = {
+                phonepeTransactionId: data.transactionId || null,
+                phonepeProviderReferenceId: data.providerReferenceId || null,
+                paymentStatus: data.state || 'FAILED',
+            };
 
-        await this.repo.update(
-            { phonepeMerchantTransactionId: data.merchantTransactionId },
-            updateData,
-        );
+            await this.repo.update(
+                { phonepeMerchantTransactionId: data.merchantTransactionId },
+                updateData,
+            );
 
-        return { success: true };
+            return { success: true };
+        } catch (error) {
+            console.error('Callback Error:', error);
+            throw new InternalServerErrorException('Callback handling failed');
+        }
     }
 }
