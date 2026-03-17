@@ -22,7 +22,8 @@ export class PhonePeService {
         'https://api.phonepe.com/apis/identity-manager/v1/oauth/token';
 
     private readonly PAYMENT_URL =
-        'https://api.phonepe.com/apis/hermes/checkout/v2/pay';
+        // 'https://api.phonepe.com/apis/hermes/checkout/v2/pay';
+        'https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/pay';
 
     /**
      * STEP 1: Get OAuth Token
