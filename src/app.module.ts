@@ -8,6 +8,7 @@ import { TestimonialsModule } from './testimonials/testimonials.module';
 import { PhonePeModule } from "./payments-phonepe/phonepe.module";
 import {AppController} from "./app.controller";
 import {AppService} from "./app.service";
+import {HealthModule} from "./health/health.module";
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import {AppService} from "./app.service";
       synchronize: true,
       ssl: { rejectUnauthorized: false },
     }),
+    HealthModule,
     PhonePeModule,
     LawyersModule,
     LegalIssuesModule,
