@@ -1,3 +1,6 @@
+.idea
+.slingshot
+
 # Dependencies
 node_modules/
 package-lock.json
