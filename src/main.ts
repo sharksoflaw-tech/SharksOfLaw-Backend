@@ -3,35 +3,38 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
+    try {
+        console.log("🚀 Starting app...");
 
-    // ✅ Global prefix
-    app.setGlobalPrefix('api');
+        const app = await NestFactory.create(AppModule);
 
-    // ✅ Global validation (important)
-    app.useGlobalPipes(
-        new ValidationPipe({
-            whitelist: true,
-            forbidNonWhitelisted: true,
-        }),
-    );
+        app.setGlobalPrefix('api');
 
-    // ✅ CORS (FIXED - no dependency on missing env)
-    app.enableCors({
-        origin: [
-            'http://localhost:3000',
-            'http://localhost:3001',
-            'https://sharks-of-law-frontend.vercel.app',
-        ],
-        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-        allowedHeaders: '*',
-        credentials: true,
-    });
+        app.useGlobalPipes(
+            new ValidationPipe({
+                whitelist: true,
+                forbidNonWhitelisted: true,
+            }),
+        );
 
-    const port = process.env.PORT || 3000;
-    await app.listen(port);
+        app.enableCors({
+            origin: [
+                'https://sharks-of-law-frontend.vercel.app',
+            ],
+            methods: '*',
+            allowedHeaders: '*',
+            credentials: true,
+        });
 
-    console.log(`🚀 Server running on port ${port}`);
+        const port = process.env.PORT || 3000;
+
+        // 🔥 CRITICAL FIX (THIS IS THE ISSUE)
+        await app.listen(port, '0.0.0.0');
+
+        console.log(`✅ Server running on ${port}`);
+    } catch (err) {
+        console.error("❌ BOOT ERROR:", err);
+    }
 }
 
 bootstrap();
