@@ -61,21 +61,34 @@ export class PhonePeService {
      */
     async initiatePayment(consultationId: number, amount: number) {
         try {
+            // ✅ STEP 0: Validate consultation exists
+            const consultation = await this.repo.findOneBy({ id: consultationId });
+
+            if (!consultation) {
+                throw new Error('Consultation not found');
+            }
+
+            // ✅ STEP 1: Get token
             const token = await this.getAccessToken();
+            console.log('TOKEN:', token);
 
             const merchantTransactionId = `MT_${Date.now()}`;
 
+            // ✅ STEP 2: Prepare payload
             const payload = {
                 merchantId: this.clientId, // ✅ In V2, this is clientId
                 merchantTransactionId,
                 amount: Math.floor(amount * 100), // convert to paise
                 redirectUrl: `${this.backendUrl}/api/phonepe/callback`,
                 callbackUrl: `${this.backendUrl}/api/phonepe/callback`,
+                merchantUserId: `USER_${consultationId}`, // 🔥 REQUIRED
+                mobileNumber: '9999999999',
                 paymentFlow: {
                     type: 'PG_CHECKOUT',
                 },
             };
 
+            // ✅ STEP 3: Call PhonePe
             const response = await axios.post(this.PAYMENT_URL, payload, {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -83,6 +96,7 @@ export class PhonePeService {
                 },
             });
 
+            // ✅ STEP 4: Update DB AFTER success
             // Save transaction details
             await this.repo.update(consultationId, {
                 phonepeMerchantTransactionId: merchantTransactionId,
@@ -91,11 +105,15 @@ export class PhonePeService {
 
             return response.data;
         } catch (error) {
-            console.error(
-                'PhonePe Payment Error:',
-                error.response?.data || error.message,
+            console.error('FULL ERROR:', {
+                data: error.response?.data,
+                status: error.response?.status,
+                headers: error.response?.headers,
+            });
+
+            throw new InternalServerErrorException(
+                error.response?.data || 'Payment initiation failed',
             );
-            throw new InternalServerErrorException('Payment initiation failed');
         }
     }
 
