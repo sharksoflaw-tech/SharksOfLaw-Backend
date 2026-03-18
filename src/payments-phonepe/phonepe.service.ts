@@ -186,18 +186,19 @@ export class PhonePeService {
    */
   async handleCallback(body: any) {
     try {
-      console.log("RAW CALLBACK BODY:", body);
+      console.log("RAW BODY:", body);
 
-      // 🔥 Step 1: Decode response
-      if (!body.response) {
-        throw new Error("No response from PhonePe");
+      // 👇 TEMP FIX: avoid crash for empty body
+      if (!body || !body.response) {
+        console.log("⚠️ Invalid callback hit (likely browser/manual)");
+        return { message: "Callback endpoint working" };
       }
 
       const decoded = JSON.parse(
           Buffer.from(body.response, "base64").toString("utf-8"),
       );
 
-      console.log("DECODED CALLBACK:", decoded);
+      console.log("DECODED:", decoded);
 
       const merchantTransactionId = decoded?.data?.merchantTransactionId;
 
@@ -205,10 +206,11 @@ export class PhonePeService {
         throw new Error("Missing merchantTransactionId");
       }
 
-      // 🔥 Step 2: Verify with PhonePe
       const statusResponse = await this.verifyPaymentStatus(
           merchantTransactionId,
       );
+
+      console.log("STATUS RESPONSE:", statusResponse);
 
       const isSuccess = statusResponse?.code === "PAYMENT_SUCCESS";
 
@@ -226,10 +228,9 @@ export class PhonePeService {
 
       return {
         success: isSuccess,
-        status: updateData.paymentStatus,
       };
     } catch (error) {
-      console.error("CALLBACK ERROR:", error);
+      console.error("❌ CALLBACK ERROR FULL:", error);
       throw new InternalServerErrorException("Callback handling failed");
     }
   }
