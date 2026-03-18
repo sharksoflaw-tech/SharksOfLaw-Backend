@@ -4,6 +4,7 @@ import * as crypto from "crypto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Consultation } from "../consultations/consultation.entity";
+import { JoinLawyerService } from "../join-lawyer/join-lawyer.service";
 
 interface PhonePePaymentResponse {
   success: boolean;
@@ -48,6 +49,7 @@ export class PhonePeService {
   constructor(
     @InjectRepository(Consultation)
     private readonly repo: Repository<Consultation>,
+    private readonly joinLawyerService: JoinLawyerService,
   ) {}
 
   private readonly merchantId = process.env.PHONEPE_MERCHANT_ID!;
@@ -248,6 +250,18 @@ export class PhonePeService {
           { id: consultation.id },
           updateData
       );
+
+      try {
+        await this.joinLawyerService.handlePhonepeCallback({
+          merchantTransactionId,
+          data: {
+            state,
+            transactionId: decoded?.data?.transactionId,
+          },
+        });
+      } catch (err) {
+        console.log("JoinLawyer callback skipped:", err.message);
+      }
 
       return {
         success: paymentStatus === "SUCCESS",

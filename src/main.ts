@@ -18,7 +18,11 @@ async function bootstrap() {
     );
 
     app.enableCors({
-      origin: ["https://sharks-of-law-frontend.vercel.app"],
+      // origin: ["https://sharks-of-law-frontend.vercel.app"],
+      origin: [
+          'http://localhost:3000',
+        'https://sharks-of-law-frontend.vercel.app',
+          ],
       methods: "*",
       allowedHeaders: "*",
       credentials: true,

@@ -9,6 +9,7 @@ import { PhonePeModule } from "./payments-phonepe/phonepe.module";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { HealthModule } from "./health/health.module";
+import {JoinLawyerModule} from "./join-lawyer/join-lawyer.module";
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { HealthModule } from "./health/health.module";
       synchronize: true,
       ssl: { rejectUnauthorized: false },
     }),
+    JoinLawyerModule,
     HealthModule,
     PhonePeModule,
     LawyersModule,
