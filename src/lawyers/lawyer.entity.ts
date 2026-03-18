@@ -1,43 +1,43 @@
 import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    CreateDateColumn,
-    UpdateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from "typeorm";
 
 @Entity("lawyers")
 export class Lawyer {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    fullName: string;
+  @Column()
+  fullName: string;
 
-    @Column()
-    avatarInitials: string; // e.g., AS, RK
+  @Column()
+  avatarInitials: string; // e.g., AS, RK
 
-    @Column()
-    expertise: string; // e.g., Criminal, Divorce
+  @Column()
+  expertise: string; // e.g., Criminal, Divorce
 
-    @Column()
-    practiceArea: string; // slug: criminal | divorce | property…
+  @Column()
+  practiceArea: string; // slug: criminal | divorce | property…
 
-    @Column()
-    experienceYears: number;
+  @Column()
+  experienceYears: number;
 
-    @Column()
-    city: string;
+  @Column()
+  city: string;
 
-    @Column({ type: "float", default: 4.5 })
-    rating: number;
+  @Column({ type: "float", default: 4.5 })
+  rating: number;
 
-    @Column({ default: true })
-    verified: boolean;
+  @Column({ default: true })
+  verified: boolean;
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @CreateDateColumn()
+  createdAt: Date;
 
-    @UpdateDateColumn()
-    updatedAt: Date;
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

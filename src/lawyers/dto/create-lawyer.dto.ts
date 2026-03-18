@@ -1,29 +1,29 @@
 import { IsBoolean, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class CreateLawyerDto {
-    @IsString()
-    fullName: string;
+  @IsString()
+  fullName: string;
 
-    @IsString()
-    avatarInitials: string;
+  @IsString()
+  avatarInitials: string;
 
-    @IsString()
-    expertise: string;
+  @IsString()
+  expertise: string;
 
-    @IsString()
-    practiceArea: string;
+  @IsString()
+  practiceArea: string;
 
-    @IsNumber()
-    experienceYears: number;
+  @IsNumber()
+  experienceYears: number;
 
-    @IsString()
-    city: string;
+  @IsString()
+  city: string;
 
-    @IsOptional()
-    @IsNumber()
-    rating?: number;
+  @IsOptional()
+  @IsNumber()
+  rating?: number;
 
-    @IsOptional()
-    @IsBoolean()
-    verified?: boolean;
+  @IsOptional()
+  @IsBoolean()
+  verified?: boolean;
 }

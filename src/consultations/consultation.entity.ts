@@ -4,11 +4,11 @@ import {
   Column,
   CreateDateColumn,
   ManyToOne,
-} from 'typeorm';
-import { LegalIssue } from '../legal-issues/legal-issue.entity';
-import { Lawyer } from '../lawyers/lawyer.entity';
+} from "typeorm";
+import { LegalIssue } from "../legal-issues/legal-issue.entity";
+import { Lawyer } from "../lawyers/lawyer.entity";
 
-@Entity('consultations')
+@Entity("consultations")
 export class Consultation {
   @PrimaryGeneratedColumn()
   id: number;
@@ -28,14 +28,14 @@ export class Consultation {
   @Column({ nullable: true })
   code: string; // country code
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   caseDetails: string;
 
-  @Column({ default: 'NEW' })
-  status: 'NEW' | 'IN_PROGRESS' | 'COMPLETED';
+  @Column({ default: "NEW" })
+  status: "NEW" | "IN_PROGRESS" | "COMPLETED";
 
   @ManyToOne(() => LegalIssue, { eager: true, nullable: true })
-  legalIssue: LegalIssue | null
+  legalIssue: LegalIssue | null;
 
   @ManyToOne(() => Lawyer, { eager: true, nullable: true })
   lawyer: Lawyer;
@@ -60,10 +60,10 @@ export class Consultation {
   phonepeProviderReferenceId?: string; // PhonePe provider reference
 
   @Column({
-    type: 'varchar',
+    type: "varchar",
     nullable: true,
   })
-  paymentStatus?: 'PENDING' | 'SUCCESS' | 'FAILED';
+  paymentStatus?: "PENDING" | "SUCCESS" | "FAILED";
 
   @CreateDateColumn()
   createdAt: Date;

@@ -3,9 +3,9 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-} from 'typeorm';
+} from "typeorm";
 
-@Entity('testimonials')
+@Entity("testimonials")
 export class Testimonial {
   @PrimaryGeneratedColumn()
   id: number;
@@ -19,10 +19,10 @@ export class Testimonial {
   @Column()
   state: string;
 
-  @Column({ type: 'float' })
+  @Column({ type: "float" })
   rating: number;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   content: string;
 
   @Column({ nullable: true })

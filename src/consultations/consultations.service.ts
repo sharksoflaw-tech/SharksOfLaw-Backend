@@ -1,36 +1,36 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Consultation } from './consultation.entity';
-import { CreateConsultationDto } from './dto/create-consultation.dto';
-import { UpdateConsultationDto } from './dto/update-consultation.dto';
-import { LegalIssue } from '../legal-issues/legal-issue.entity';
-import { Lawyer } from '../lawyers/lawyer.entity';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Consultation } from "./consultation.entity";
+import { CreateConsultationDto } from "./dto/create-consultation.dto";
+import { UpdateConsultationDto } from "./dto/update-consultation.dto";
+import { LegalIssue } from "../legal-issues/legal-issue.entity";
+import { Lawyer } from "../lawyers/lawyer.entity";
 
 @Injectable()
 export class ConsultationsService {
   constructor(
-      @InjectRepository(Consultation)
-      private readonly repo: Repository<Consultation>,
+    @InjectRepository(Consultation)
+    private readonly repo: Repository<Consultation>,
 
-      @InjectRepository(LegalIssue)
-      private readonly legalRepo: Repository<LegalIssue>,
+    @InjectRepository(LegalIssue)
+    private readonly legalRepo: Repository<LegalIssue>,
 
-      @InjectRepository(Lawyer)
-      private readonly lawyerRepo: Repository<Lawyer>,
+    @InjectRepository(Lawyer)
+    private readonly lawyerRepo: Repository<Lawyer>,
   ) {}
 
   async create(dto: CreateConsultationDto) {
-
     let legalIssue: LegalIssue | null = null;
 
     if (dto.legalIssueId) {
-      legalIssue = await this.legalRepo.findOne({ where: { id: dto.legalIssueId } });
+      legalIssue = await this.legalRepo.findOne({
+        where: { id: dto.legalIssueId },
+      });
       if (!legalIssue) {
-        throw new NotFoundException('Invalid legal issue');
+        throw new NotFoundException("Invalid legal issue");
       }
     }
-
 
     let lawyer: Lawyer | null = null;
 
@@ -66,7 +66,7 @@ export class ConsultationsService {
 
   findAll() {
     return this.repo.find({
-      order: { createdAt: 'DESC' },
+      order: { createdAt: "DESC" },
     });
   }
 
@@ -77,7 +77,7 @@ export class ConsultationsService {
   async update(id: number, dto: UpdateConsultationDto) {
     const c = await this.repo.findOne({ where: { id } });
 
-    if (!c) throw new NotFoundException('Consultation not found');
+    if (!c) throw new NotFoundException("Consultation not found");
 
     Object.assign(c, dto);
     return this.repo.save(c);
@@ -87,7 +87,7 @@ export class ConsultationsService {
     const res = await this.repo.delete(id);
 
     if (!res.affected) {
-      throw new NotFoundException('Consultation not found');
+      throw new NotFoundException("Consultation not found");
     }
   }
 }

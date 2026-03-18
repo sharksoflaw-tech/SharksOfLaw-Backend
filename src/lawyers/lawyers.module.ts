@@ -5,9 +5,9 @@ import { LawyersService } from "./lawyers.service";
 import { LawyersController } from "./lawyers.controller";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Lawyer])],
-    controllers: [LawyersController],
-    providers: [LawyersService],
-    exports: [LawyersService],
+  imports: [TypeOrmModule.forFeature([Lawyer])],
+  controllers: [LawyersController],
+  providers: [LawyersService],
+  exports: [LawyersService],
 })
 export class LawyersModule {}
