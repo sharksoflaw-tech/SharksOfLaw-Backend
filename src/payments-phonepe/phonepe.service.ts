@@ -72,7 +72,17 @@ export class PhonePeService {
 
       if (!consultation) throw new Error("Consultation not found");
 
-      const merchantTransactionId = `MT${Date.now()}`;
+      const merchantTransactionId = "MT" + Date.now();
+
+// ✅ SAVE BEFORE CALLING PHONEPE
+      await this.repo.update(
+          { id: consultationId },
+          { phonepeMerchantTransactionId: merchantTransactionId }
+      );
+
+// then call PhonePe API
+
+      console.log("Updating consultation for txn:", merchantTransactionId);
 
       console.log("CALLBACK URL:", `${this.backendUrl}/phonepe/callback`);
 
@@ -225,9 +235,18 @@ export class PhonePeService {
         paymentStatus,
       };
 
+      const consultation = await this.repo.findOne({
+        where: { phonepeMerchantTransactionId: merchantTransactionId },
+      });
+
+      if (!consultation) {
+        console.log("❌ No consultation found for txn:", merchantTransactionId);
+        return;
+      }
+
       await this.repo.update(
-          { phonepeMerchantTransactionId: merchantTransactionId },
-          updateData,
+          { id: consultation.id },
+          updateData
       );
 
       return {
