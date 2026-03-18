@@ -54,6 +54,7 @@ export class PhonePeService {
   private readonly saltKey = process.env.PHONEPE_SALT_KEY!;
   private readonly saltIndex = process.env.PHONEPE_SALT_INDEX!;
   private readonly backendUrl = process.env.BACKEND_URL!;
+  private readonly frontendUrl = process.env.FRONTEND_URL!;
 
   // ✅ SANDBOX URLS (change to prod later)
   private readonly PAYMENT_URL =
@@ -80,8 +81,8 @@ export class PhonePeService {
         merchantTransactionId,
         merchantUserId: `MUID${consultationId}`,
         amount: Math.floor(amount * 100),
-        redirectUrl: `${this.backendUrl}/api/phonepe/callback`,
-        redirectMode: "POST",
+        redirectUrl: `${this.frontendUrl}/consult-success?txnId=${merchantTransactionId}`,
+        redirectMode: "REDIRECT",
         callbackUrl: `${this.backendUrl}/api/phonepe/callback`,
         mobileNumber: consultation.phone || "9999999999",
         paymentInstrument: {
@@ -212,14 +213,15 @@ export class PhonePeService {
 
       console.log("STATUS RESPONSE:", statusResponse);
 
-      const isSuccess = statusResponse?.code === "PAYMENT_SUCCESS";
+      const state = statusResponse?.data?.state;
 
-      const updateData = {
+      const isSuccess = state === "COMPLETED";
+
+      const updateData: Partial<Consultation> = {
         phonepeTransactionId: statusResponse?.data?.transactionId,
-        phonepeProviderReferenceId:
-        statusResponse?.data?.providerReferenceId,
+        phonepeProviderReferenceId: statusResponse?.data?.providerReferenceId,
         paymentStatus: isSuccess ? "SUCCESS" : "FAILED",
-      } as any;
+      };
 
       await this.repo.update(
           { phonepeMerchantTransactionId: merchantTransactionId },
