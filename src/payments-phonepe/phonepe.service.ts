@@ -184,35 +184,40 @@ export class PhonePeService {
   /**
    * STEP 3: HANDLE CALLBACK + VERIFY (IMPORTANT)
    */
-  async handleCallback(body: PhonePeCallbackBody) {
+  async handleCallback(body: any) {
     try {
-      console.log("PHONEPE CALLBACK:", body);
+      console.log("RAW CALLBACK BODY:", body);
 
-      const merchantTransactionId = body.merchantTransactionId;
+      // 🔥 Step 1: Decode response
+      if (!body.response) {
+        throw new Error("No response from PhonePe");
+      }
+
+      const decoded = JSON.parse(
+          Buffer.from(body.response, "base64").toString("utf-8"),
+      );
+
+      console.log("DECODED CALLBACK:", decoded);
+
+      const merchantTransactionId = decoded?.data?.merchantTransactionId;
 
       if (!merchantTransactionId) {
         throw new Error("Missing merchantTransactionId");
       }
 
-      // 🔥 VERIFY WITH PHONEPE
+      // 🔥 Step 2: Verify with PhonePe
       const statusResponse = await this.verifyPaymentStatus(
           merchantTransactionId,
       );
 
-      const state = statusResponse?.data?.state;
-
-      // ✅ Correct success condition
-      const isSuccess = state === "COMPLETED";
-
-      const paymentStatus: "SUCCESS" | "FAILED" =
-          isSuccess ? "SUCCESS" : "FAILED";
+      const isSuccess = statusResponse?.code === "PAYMENT_SUCCESS";
 
       const updateData = {
         phonepeTransactionId: statusResponse?.data?.transactionId,
         phonepeProviderReferenceId:
         statusResponse?.data?.providerReferenceId,
-        paymentStatus,
-      };
+        paymentStatus: isSuccess ? "SUCCESS" : "FAILED",
+      } as any;
 
       await this.repo.update(
           { phonepeMerchantTransactionId: merchantTransactionId },
