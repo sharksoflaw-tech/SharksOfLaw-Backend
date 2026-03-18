@@ -84,7 +84,7 @@ export class PhonePeService {
 
       console.log("Updating consultation for txn:", merchantTransactionId);
 
-      console.log("CALLBACK URL:", `${this.backendUrl}/phonepe/callback`);
+      console.log("CALLBACK URL:", `${this.backendUrl}/api/phonepe/callback`);
 
       const payload = {
         merchantId: this.merchantId,
@@ -93,7 +93,7 @@ export class PhonePeService {
         amount: Math.floor(amount * 100),
         redirectUrl: `${this.frontendUrl}/consult-success?txnId=${merchantTransactionId}`,
         redirectMode: "REDIRECT",
-        callbackUrl: `${this.backendUrl}/phonepe/callback`,
+        callbackUrl: `${this.backendUrl}/api/phonepe/callback`,
         mobileNumber: consultation.phone || "9999999999",
         paymentInstrument: {
           type: "PAY_PAGE",
