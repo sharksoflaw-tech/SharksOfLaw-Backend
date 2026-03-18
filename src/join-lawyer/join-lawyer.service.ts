@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {Injectable, BadRequestException, NotFoundException, Inject, forwardRef} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JoinLawyerApplicationEntity } from './join-lawyer-application.entity';
@@ -16,6 +16,7 @@ export class JoinLawyerService {
         @InjectRepository(Consultation)
         private readonly consultationRepo: Repository<Consultation>,
 
+        @Inject(forwardRef(() => PhonePeService))
         private readonly phonepeService: PhonePeService,
     ) {}
 
