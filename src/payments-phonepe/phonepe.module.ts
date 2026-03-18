@@ -7,7 +7,7 @@ import {JoinLawyerModule} from "../join-lawyer/join-lawyer.module";
 import {JoinLawyerApplicationEntity} from "../join-lawyer/join-lawyer-application.entity";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([JoinLawyerApplicationEntity, Consultation]), PhonePeModule,],
+  imports: [TypeOrmModule.forFeature([JoinLawyerApplicationEntity, Consultation])],
   controllers: [PhonePeController],
   providers: [PhonePeService],
 })
