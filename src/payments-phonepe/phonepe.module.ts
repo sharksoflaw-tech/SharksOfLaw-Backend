@@ -10,6 +10,5 @@ import {JoinLawyerApplicationEntity} from "../join-lawyer/join-lawyer-applicatio
   imports: [TypeOrmModule.forFeature([JoinLawyerApplicationEntity, Consultation]), PhonePeModule,],
   controllers: [PhonePeController],
   providers: [PhonePeService],
-  exports: [PhonePeService],
 })
 export class PhonePeModule {}
