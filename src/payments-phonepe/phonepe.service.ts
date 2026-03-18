@@ -73,6 +73,8 @@ export class PhonePeService {
 
       const merchantTransactionId = `MT${Date.now()}`;
 
+      console.log("CALLBACK URL:", `${this.backendUrl}/api/phonepe/callback`);
+
       const payload = {
         merchantId: this.merchantId,
         merchantTransactionId,
