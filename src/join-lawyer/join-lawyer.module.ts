@@ -9,7 +9,6 @@ import { Consultation } from '../consultations/consultation.entity';
 @Module({
     imports: [
         TypeOrmModule.forFeature([JoinLawyerApplicationEntity, Consultation]),
-        PhonePeModule,
     ],
     controllers: [JoinLawyerController],
     providers: [JoinLawyerService],
