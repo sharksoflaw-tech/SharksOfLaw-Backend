@@ -215,12 +215,20 @@ export class PhonePeService {
 
       const state = statusResponse?.data?.state;
 
-      const isSuccess = state === "COMPLETED";
+      let paymentStatus: "SUCCESS" | "FAILED" | "PENDING" = "PENDING";
+
+      if (state === "COMPLETED") {
+        paymentStatus = "SUCCESS";
+      } else if (state === "FAILED") {
+        paymentStatus = "FAILED";
+      } else {
+        paymentStatus = "PENDING"; // safety
+      }
 
       const updateData: Partial<Consultation> = {
         phonepeTransactionId: statusResponse?.data?.transactionId,
         phonepeProviderReferenceId: statusResponse?.data?.providerReferenceId,
-        paymentStatus: isSuccess ? "SUCCESS" : "FAILED",
+        paymentStatus,
       };
 
       await this.repo.update(
@@ -229,8 +237,10 @@ export class PhonePeService {
       );
 
       return {
-        success: isSuccess,
+        success: paymentStatus === "SUCCESS",
+        status: paymentStatus,
       };
+
     } catch (error) {
       console.error("❌ CALLBACK ERROR FULL:", error);
       throw new InternalServerErrorException("Callback handling failed");
