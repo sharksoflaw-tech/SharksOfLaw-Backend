@@ -207,13 +207,7 @@ export class PhonePeService {
         throw new Error("Missing merchantTransactionId");
       }
 
-      const statusResponse = await this.verifyPaymentStatus(
-          merchantTransactionId,
-      );
-
-      console.log("STATUS RESPONSE:", statusResponse);
-
-      const state = statusResponse?.data?.state;
+      const state = decoded?.data?.state;
 
       let paymentStatus: "SUCCESS" | "FAILED" | "PENDING" = "PENDING";
 
@@ -226,8 +220,8 @@ export class PhonePeService {
       }
 
       const updateData: Partial<Consultation> = {
-        phonepeTransactionId: statusResponse?.data?.transactionId,
-        phonepeProviderReferenceId: statusResponse?.data?.providerReferenceId,
+        phonepeTransactionId: decoded?.data?.transactionId,
+        phonepeProviderReferenceId: decoded?.data?.providerReferenceId,
         paymentStatus,
       };
 
