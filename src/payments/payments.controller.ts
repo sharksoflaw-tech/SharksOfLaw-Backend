@@ -12,7 +12,10 @@ export class PaymentsController {
         @Query('consultationId') consultationId?: number,
         @Query('appId') appId?: string,
     ) {
-        return this.payments.getPaymentStatus({ consultationId, appId });
+        return this.payments.getPaymentStatus({
+            consultationId: consultationId ? Number(consultationId) : undefined,
+            appId,
+        });
     }
 
     @Post('consultations/attempts')
