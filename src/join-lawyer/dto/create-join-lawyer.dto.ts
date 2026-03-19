@@ -3,8 +3,8 @@ import { ArrayNotEmpty, IsArray, IsIn, IsInt, IsString } from 'class-validator';
 export class CreateJoinLawyerDto {
     @IsArray()
     @ArrayNotEmpty()
-    @IsString({ each: true })
-    legalCategories: string[];
+    @IsInt({ each: true })
+    legalCategoryIds: number[];
 
     @IsArray()
     @ArrayNotEmpty()
@@ -16,6 +16,6 @@ export class CreateJoinLawyerDto {
     planYears: number;
 
     @IsInt()
-    @IsIn([499, 899, 1499])
+    @IsIn([499, 899, 1299])
     amountInr: number;
 }

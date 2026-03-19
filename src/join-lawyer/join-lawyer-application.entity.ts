@@ -26,11 +26,14 @@ export class JoinLawyerApplicationEntity {
 
 
     // Step 1 (MULTI SELECT)
+    @Column({ type: 'int', array: true, name: 'legal_category_ids', default: () => 'ARRAY[]::integer[]' })
+    legalCategoryIds: number[];
+
+    @Column({ type: 'text', array: true, name: 'languages', default: () => 'ARRAY[]::text[]' })
+    languages: string[];
+
     @Column({ name: 'legal_categories', type: 'text', array: true })
     legalCategories: string[];
-
-    @Column({ name: 'languages', type: 'text', array: true })
-    languages: string[];
 
     @Column({ type: 'int' })
     planYears: number; // 1 | 2 | 3
