@@ -1,93 +1,78 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { Consultation } from "./consultation.entity";
-import { CreateConsultationDto } from "./dto/create-consultation.dto";
-import { UpdateConsultationDto } from "./dto/update-consultation.dto";
-import { LegalIssue } from "../legal-issues/legal-issue.entity";
-import { Lawyer } from "../lawyers/lawyer-profile.entity";
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Consultation } from './consultation.entity';
+import { CreateConsultationDto } from './dto/create-consultation.dto';
+import { UsersService } from '../users/users.service';
+import { LawyerProfileEntity } from '../lawyers/lawyer-profile.entity';
 
 @Injectable()
 export class ConsultationsService {
   constructor(
-    @InjectRepository(Consultation)
-    private readonly repo: Repository<Consultation>,
+      @InjectRepository(Consultation)
+      private readonly repo: Repository<Consultation>,
 
-    @InjectRepository(LegalIssue)
-    private readonly legalRepo: Repository<LegalIssue>,
+      @InjectRepository(LawyerProfileEntity)
+      private readonly lawyerRepo: Repository<LawyerProfileEntity>,
 
-    @InjectRepository(Lawyer)
-    private readonly lawyerRepo: Repository<Lawyer>,
+      private readonly usersService: UsersService,
   ) {}
 
   async create(dto: CreateConsultationDto) {
-    let legalIssue: LegalIssue | null = null;
-
-    if (dto.legalIssueId) {
-      legalIssue = await this.legalRepo.findOne({
-        where: { id: dto.legalIssueId },
-      });
-      if (!legalIssue) {
-        throw new NotFoundException("Invalid legal issue");
-      }
+    if (!dto.phone || !dto.firstName || !dto.lastName) {
+      throw new BadRequestException('Missing required fields');
     }
 
-    let lawyer: Lawyer | null = null;
+    const code = dto.code ?? '+91';
+    const mobileE164 = `${code}${dto.phone}`.replace(/\s+/g, '');
 
-    if (dto.lawyerId) {
-      lawyer = await this.lawyerRepo.findOne({
-        where: { id: dto.lawyerId },
-      });
+    // ✅ one identity table for future login
+    const user = await this.usersService.findOrCreateByMobile(mobileE164, dto.email ?? null);
+
+    // ✅ validate optional lawyerProfileId only when provided
+    let lawyerProfileId: string | null = null;
+    if (dto.lawyerProfileId) {
+      const exists = await this.lawyerRepo.findOne({ where: { id: dto.lawyerProfileId, isActive: true } });
+      if (!exists) throw new NotFoundException('Selected lawyer not found');
+      lawyerProfileId = dto.lawyerProfileId;
     }
 
-    const record = this.repo.create({
+    const consult = this.repo.create({
+      userId: user.id,
+      lawyerProfileId,
+      legalIssueId: dto.legalIssueId,
+      language: dto.language,
+      selectedPlan: dto.selectedPlan,
       firstName: dto.firstName,
       lastName: dto.lastName,
-      email: dto.email,
+      email: dto.email ?? null,
       phone: dto.phone,
-      code: dto.code,
-      caseDetails: dto.caseDetails,
-      selectedPlan: dto.selectedPlan,
-      language: dto.language,
-
-      // ⛔️ REMOVED Razorpay fields
-      // razorpayOrderId: dto.razorpayOrderId,
-      // razorpayPaymentId: dto.razorpayPaymentId,
-
-      // If PhonePe adds any fields, add them here later:
-      // phonepeTransactionId: dto.phonepeTransactionId,
-
-      legalIssue,
-      lawyer: lawyer || undefined,
+      code,
+      state: dto.state ?? null,
+      city: dto.city ?? null,
+      caseDetails: dto.caseDetails ?? null,
+      status: 'DRAFT',
     });
 
-    return this.repo.save(record);
+    return this.repo.save(consult);
   }
 
-  findAll() {
-    return this.repo.find({
-      order: { createdAt: "DESC" },
+  async getById(id: number) {
+    const consult = await this.repo.findOne({
+      where: { id } as any,
+      relations: { lawyerProfile: true, user: true } as any,
     });
+    if (!consult) throw new NotFoundException('Consultation not found');
+    return consult;
   }
 
-  findOne(id: number) {
-    return this.repo.findOne({ where: { id } });
-  }
+// Called by payments callback (after payment success) to update consultation status to PAID
+  async markAsPaid(consultationId: number, phonepeMerchantTransactionId: string) {
+    const consult = await this.repo.findOneBy({ id: consultationId });
+    if (!consult) throw new NotFoundException('Consultation not found');
 
-  async update(id: number, dto: UpdateConsultationDto) {
-    const c = await this.repo.findOne({ where: { id } });
-
-    if (!c) throw new NotFoundException("Consultation not found");
-
-    Object.assign(c, dto);
-    return this.repo.save(c);
-  }
-
-  async remove(id: number) {
-    const res = await this.repo.delete(id);
-
-    if (!res.affected) {
-      throw new NotFoundException("Consultation not found");
-    }
+    consult.status = 'CLOSED';
+    (consult as any).phonepeMerchantTransactionId = phonepeMerchantTransactionId; // dynamic column for tracking
+    return this.repo.save(consult);
   }
 }

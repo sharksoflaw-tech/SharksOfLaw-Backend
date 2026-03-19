@@ -1,63 +1,32 @@
-import { IsString, IsOptional, IsNumber, IsIn } from "class-validator";
+import { IsEmail, IsIn, IsInt, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateConsultationDto {
-  @IsString()
-  firstName: string;
+  @IsString() firstName: string;
+  @IsString() lastName: string;
 
   @IsOptional()
-  @IsString()
-  lastName?: string;
-
-  @IsString()
-  phone: string;
-
-  @IsOptional()
-  @IsString()
+  @IsEmail()
   email?: string;
 
-  @IsOptional()
-  @IsString()
-  code?: string;
+  @IsString() phone: string;
+  @IsOptional() @IsString() code?: string;
 
-  @IsOptional()
-  @IsNumber()
+  @IsOptional() @IsString() state?: string;
+  @IsOptional() @IsString() city?: string;
+  @IsOptional() @IsString() caseDetails?: string;
+
+  @IsInt()
   legalIssueId: number;
 
-  @IsOptional()
-  @IsNumber()
-  lawyerId?: number;
-
-  @IsOptional()
   @IsString()
-  caseDetails?: string;
+  language: string;
 
-  // ✅ ADD THESE (THIS FIXES YOUR ERROR)
-
-  @IsOptional()
   @IsString()
-  selectedPlan?: string;
+  @IsIn(['quick', 'standard', 'detailed'])
+  selectedPlan: 'quick' | 'standard' | 'detailed';
 
+  // ✅ optional when user comes from lawyer card
   @IsOptional()
-  @IsString()
-  language?: string;
-
-  // ---------------------
-  // PHONEPE FIELDS
-  // ---------------------
-
-  @IsOptional()
-  @IsString()
-  phonepeMerchantTransactionId?: string;
-
-  @IsOptional()
-  @IsString()
-  phonepeTransactionId?: string;
-
-  @IsOptional()
-  @IsString()
-  phonepeProviderReferenceId?: string;
-
-  @IsOptional()
-  @IsIn(["PENDING", "SUCCESS", "FAILED"])
-  paymentStatus?: "PENDING" | "SUCCESS" | "FAILED";
+  @IsUUID()
+  lawyerProfileId?: string;
 }
