@@ -49,7 +49,7 @@ export class PaymentsService {
             provider: 'PHONEPE',
         }));
 
-        const redirectUrl = `${frontendBaseUrl}/consult/payments/status?consultationId=${consultationId}`;
+        const redirectUrl = `${frontendBaseUrl}/consult/payment-status?consultationId=${consultationId}`;
         const callbackUrl = `${backendBaseUrl}/api/payments/phonepe/callback`;
 
         const resp = await this.phonepe.initiatePayPage({
@@ -90,7 +90,7 @@ export class PaymentsService {
             provider: 'PHONEPE',
         }));
 
-        const redirectUrl = `${frontendBaseUrl}/join-lawyer/payments/status?appId=${appId}`;
+        const redirectUrl = `${frontendBaseUrl}/join-lawyer/payment-status?appId=${appId}`;
         const callbackUrl = `${backendBaseUrl}/api/payments/phonepe/callback`;
 
         const resp = await this.phonepe.initiatePayPage({
