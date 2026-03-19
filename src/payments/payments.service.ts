@@ -134,14 +134,33 @@ export class PaymentsService {
             payload?.code ||
             payload?.status;
 
+        console.log("PHONEPE RAW STATUS:", {
+            state: payload?.data?.state,
+            code: payload?.code,
+            status: payload?.status,
+        });
+
         const providerTxnId = payload?.data?.transactionId ?? null;
 
         attempt.providerTransactionId = providerTxnId;
         attempt.rawResponse = payload;
 
-        const isSuccess = status === 'COMPLETED' || status === 'SUCCESS';
+        const rawStatus = payload?.data?.state || payload?.code || payload?.status;
+        console.log("PHONEPE CALLBACK STATUS:", rawStatus);
 
-        if (isSuccess) {
+        const SUCCESS_STATES = [
+            'COMPLETED',
+            'SUCCESS',
+            'PAYMENT_SUCCESS',
+            'PAYMENT_COMPLETED',
+        ];
+
+        const isSuccess =
+            SUCCESS_STATES.includes(status) ||
+            payload?.success === true ||
+            payload?.data?.success === true;
+
+        if (isSuccess && payment.consultationId) {
             // ✅ Update payment tables
             attempt.status = 'SUCCESS';
             payment.status = 'SUCCESS';
@@ -152,6 +171,8 @@ export class PaymentsService {
             console.log("FINALIZING PAYMENT SUCCESS. paymentId:", payment.id);
             console.log("FINALIZING CONSULTATION:", payment.consultationId);
             console.log("FINALIZING JOINLAW:", payment.joinLawyerApplicationId);
+
+            console.log("FINALIZING CONSULTATION:", payment.consultationId);
 
             // ✅ CRITICAL: update BUSINESS entity
             if (payment.consultationId) {
