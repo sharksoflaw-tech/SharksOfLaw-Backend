@@ -107,16 +107,32 @@ export class PaymentsService {
     }
 
     async handlePhonepeCallback(payload: any) {
-        const merchantTransactionId = payload?.data?.merchantTransactionId || payload?.merchantTransactionId;
-        if (!merchantTransactionId) throw new BadRequestException('Missing merchantTransactionId');
+        const merchantTransactionId =
+            payload?.data?.merchantTransactionId || payload?.merchantTransactionId;
 
-        const attempt = await this.attemptsRepo.findOne({ where: { merchantTransactionId } });
-        if (!attempt) throw new NotFoundException('Payment attempt not found');
+        if (!merchantTransactionId) {
+            throw new BadRequestException('Missing merchantTransactionId');
+        }
 
-        const payment = await this.paymentsRepo.findOne({ where: { id: attempt.paymentId } });
-        if (!payment) throw new NotFoundException('Payment not found');
+        const attempt = await this.attemptsRepo.findOne({
+            where: {merchantTransactionId},
+        });
+        if (!attempt) {
+            throw new NotFoundException('Payment attempt not found');
+        }
 
-        const status = payload?.data?.state || payload?.code || payload?.status;
+        const payment = await this.paymentsRepo.findOne({
+            where: {id: attempt.paymentId},
+        });
+        if (!payment) {
+            throw new NotFoundException('Payment not found');
+        }
+
+        const status =
+            payload?.data?.state ||
+            payload?.code ||
+            payload?.status;
+
         const providerTxnId = payload?.data?.transactionId ?? null;
 
         attempt.providerTransactionId = providerTxnId;
@@ -125,19 +141,50 @@ export class PaymentsService {
         const isSuccess = status === 'COMPLETED' || status === 'SUCCESS';
 
         if (isSuccess) {
+            // ✅ Update payment tables
             attempt.status = 'SUCCESS';
             payment.status = 'SUCCESS';
-        } else if (status === 'FAILED') {
-            attempt.status = 'FAILED';
-            payment.status = 'FAILED';
-        } else {
-            attempt.status = 'PENDING';
-            payment.status = 'PENDING';
+
+            await this.attemptsRepo.save(attempt);
+            await this.paymentsRepo.save(payment);
+
+            // ✅ CRITICAL: update BUSINESS entity
+            if (payment.consultationId) {
+                await this.consultationsRepo.update(
+                    {id: payment.consultationId},
+                    {status: 'SUBMITTED'} as any,
+                );
+            }
+
+            if (payment.joinLawyerApplicationId) {
+                await this.joinLawyerRepo.update(
+                    {id: payment.joinLawyerApplicationId},
+                    {
+                        paymentStatus: 'SUCCESS',
+                        applicationStatus: 'SUBMITTED',
+                    } as any,
+                );
+            }
+
+            return {success: true, status: 'SUCCESS'};
         }
+
+        // ❌ FAILED or CANCELLED
+        attempt.status = 'FAILED';
+        payment.status = 'FAILED';
 
         await this.attemptsRepo.save(attempt);
         await this.paymentsRepo.save(payment);
 
-        return { success: isSuccess, status: payment.status };
+        // ✅ optional: mark business entity as failed (do NOT submit)
+        if (payment.joinLawyerApplicationId) {
+            await this.joinLawyerRepo.update(
+                {id: payment.joinLawyerApplicationId},
+                {paymentStatus: 'FAILED'} as any,
+            );
+        }
+
+        return {success: false};
     }
+
 }
