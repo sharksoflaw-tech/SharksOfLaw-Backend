@@ -64,8 +64,8 @@ export class JoinLawyerController {
 
     @Post('applications/:id/payments/phonepe')
     async pay(@Param('id') id: string, @Req() req: any) {
-        const frontendBaseUrl = process.env.FRONTEND_BASE_URL!;
-        const backendBaseUrl = process.env.BACKEND_BASE_URL!;
+        const frontendBaseUrl = process.env.FRONTEND_URL!;
+        const backendBaseUrl = process.env.BACKEND_URL!;
         return this.service.initiatePayment(id, frontendBaseUrl, backendBaseUrl);
     }
 }
