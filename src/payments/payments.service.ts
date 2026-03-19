@@ -137,110 +137,129 @@ export class PaymentsService {
     }
 
     async handlePhonepeCallback(payload: any) {
-        console.log("PHONEPE CALLBACK RECEIVED:", JSON.stringify(payload).slice(0, 1200));
-        const merchantTransactionId =
-            payload?.data?.merchantTransactionId || payload?.merchantTransactionId;
+        console.log(
+            "PHONEPE CALLBACK RECEIVED:",
+            JSON.stringify(payload).slice(0, 1200)
+        );
 
-        if (!merchantTransactionId) {
-            throw new BadRequestException('Missing merchantTransactionId');
+        // ✅ STEP 1: Decode payload properly
+        let decoded: any;
+
+        try {
+            if (payload?.response) {
+                decoded = JSON.parse(
+                    Buffer.from(payload.response, "base64").toString("utf-8")
+                );
+            } else {
+                decoded = payload;
+            }
+        } catch (err) {
+            console.error("❌ Failed to decode PhonePe payload", err);
+            throw new BadRequestException("Invalid PhonePe payload");
         }
 
+        console.log("DECODED CALLBACK:", decoded);
+
+        // ✅ STEP 2: Extract values correctly
+        const merchantTransactionId = decoded?.data?.merchantTransactionId;
+        const status = decoded?.data?.state; // 👈 MAIN FIELD
+        const providerTxnId = decoded?.data?.transactionId ?? null;
+
+        if (!merchantTransactionId) {
+            throw new BadRequestException("Missing merchantTransactionId");
+        }
+
+        // ✅ STEP 3: Fetch attempt & payment
         const attempt = await this.attemptsRepo.findOne({
-            where: {merchantTransactionId},
+            where: { merchantTransactionId },
         });
+
         if (!attempt) {
-            throw new NotFoundException('Payment attempt not found');
+            throw new NotFoundException("Payment attempt not found");
         }
 
         const payment = await this.paymentsRepo.findOne({
-            where: {id: attempt.paymentId},
+            where: { id: attempt.paymentId },
         });
+
         if (!payment) {
-            throw new NotFoundException('Payment not found');
+            throw new NotFoundException("Payment not found");
         }
 
-        const status =
-            payload?.data?.state ||
-            payload?.code ||
-            payload?.status;
-
-        console.log("PHONEPE RAW STATUS:", {
-            state: payload?.data?.state,
-            code: payload?.code,
-            status: payload?.status,
-        });
-
-        const providerTxnId = payload?.data?.transactionId ?? null;
-
+        // ✅ STEP 4: Save raw data
         attempt.providerTransactionId = providerTxnId;
-        attempt.rawResponse = payload;
+        attempt.rawResponse = decoded;
 
-        const rawStatus = payload?.data?.state || payload?.code || payload?.status;
-        console.log("PHONEPE CALLBACK STATUS:", rawStatus);
+        console.log("PHONEPE STATUS:", status);
 
-        const SUCCESS_STATES = [
-            'COMPLETED',
-            'SUCCESS',
-            'PAYMENT_SUCCESS',
-            'PAYMENT_COMPLETED',
-        ];
+        // ✅ HANDLE PENDING (do NOT mark failed)
+        if (status === "PENDING") {
+            attempt.status = "PENDING";
+            attempt.rawResponse = decoded;
 
-        const isSuccess =
-            SUCCESS_STATES.includes(status) ||
-            payload?.success === true ||
-            payload?.data?.success === true;
+            await this.attemptsRepo.save(attempt);
 
-        if (isSuccess && payment.consultationId) {
-            // ✅ Update payment tables
-            attempt.status = 'SUCCESS';
-            payment.status = 'SUCCESS';
+            console.log("⏳ PAYMENT STILL PENDING:", merchantTransactionId);
+
+            return { success: false, status: "PENDING" };
+        }
+
+        // ✅ STEP 5: Determine success (ONLY THIS MATTERS)
+        const isSuccess = status === "COMPLETED";
+
+        // =========================
+        // ✅ SUCCESS FLOW
+        // =========================
+        if (isSuccess) {
+            attempt.status = "SUCCESS";
+            payment.status = "SUCCESS";
 
             await this.attemptsRepo.save(attempt);
             await this.paymentsRepo.save(payment);
 
-            console.log("FINALIZING PAYMENT SUCCESS. paymentId:", payment.id);
-            console.log("FINALIZING CONSULTATION:", payment.consultationId);
-            console.log("FINALIZING JOINLAW:", payment.joinLawyerApplicationId);
+            console.log("✅ PAYMENT SUCCESS:", payment.id);
 
-            console.log("FINALIZING CONSULTATION:", payment.consultationId);
-
-            // ✅ CRITICAL: update BUSINESS entity
+            // ✅ Update Consultation
             if (payment.consultationId) {
                 await this.consultationsRepo.update(
-                    {id: payment.consultationId},
-                    {status: 'SUBMITTED'} as any,
+                    { id: payment.consultationId },
+                    { status: "SUBMITTED" } as any
                 );
             }
 
+            // ✅ Update Join Lawyer
             if (payment.joinLawyerApplicationId) {
                 await this.joinLawyerRepo.update(
-                    {id: payment.joinLawyerApplicationId},
+                    { id: payment.joinLawyerApplicationId },
                     {
-                        paymentStatus: 'SUCCESS',
-                        applicationStatus: 'SUBMITTED',
-                    } as any,
+                        paymentStatus: "SUCCESS",
+                        applicationStatus: "SUBMITTED",
+                    } as any
                 );
             }
 
-            return {success: true, status: 'SUCCESS'};
+            return { success: true, status: "SUCCESS" };
         }
 
-        // ❌ FAILED or CANCELLED
-        attempt.status = 'FAILED';
-        payment.status = 'FAILED';
+        // =========================
+        // ❌ FAILED FLOW
+        // =========================
+        attempt.status = "FAILED";
+        payment.status = "FAILED";
 
         await this.attemptsRepo.save(attempt);
         await this.paymentsRepo.save(payment);
 
-        // ✅ optional: mark business entity as failed (do NOT submit)
+        console.log("❌ PAYMENT FAILED:", payment.id);
+
         if (payment.joinLawyerApplicationId) {
             await this.joinLawyerRepo.update(
-                {id: payment.joinLawyerApplicationId},
-                {paymentStatus: 'FAILED'} as any,
+                { id: payment.joinLawyerApplicationId },
+                { paymentStatus: "FAILED" } as any
             );
         }
 
-        return {success: false};
+        return { success: false, status: "FAILED" };
     }
 
 }
