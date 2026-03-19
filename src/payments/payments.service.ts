@@ -106,6 +106,36 @@ export class PaymentsService {
         return { paymentId: payment.id, attemptId: attempt.id, phonepe: resp };
     }
 
+    async getPaymentStatus({
+                               consultationId,
+                               appId,
+                           }: {
+        consultationId?: number;
+        appId?: string;
+    }) {
+        let payment;
+
+        if (consultationId) {
+            payment = await this.paymentsRepo.findOne({
+                where: { consultationId },
+            });
+        }
+
+        if (appId) {
+            payment = await this.paymentsRepo.findOne({
+                where: { joinLawyerApplicationId: appId },
+            });
+        }
+
+        if (!payment) {
+            throw new NotFoundException('Payment not found');
+        }
+
+        return {
+            status: payment.status, // PENDING | SUCCESS | FAILED
+        };
+    }
+
     async handlePhonepeCallback(payload: any) {
         console.log("PHONEPE CALLBACK RECEIVED:", JSON.stringify(payload).slice(0, 1200));
         const merchantTransactionId =

@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { CreateConsultationAttemptDto } from './dto/create-consultation-attempt.dto';
 import { CreateJoinLawyerAttemptDto } from './dto/create-joinlawyer-attempt.dto';
@@ -6,6 +6,14 @@ import { CreateJoinLawyerAttemptDto } from './dto/create-joinlawyer-attempt.dto'
 @Controller('payments')
 export class PaymentsController {
     constructor(private payments: PaymentsService) {}
+
+    @Get('status')
+    getStatus(
+        @Query('consultationId') consultationId?: number,
+        @Query('appId') appId?: string,
+    ) {
+        return this.payments.getPaymentStatus({ consultationId, appId });
+    }
 
     @Post('consultations/attempts')
     createConsultAttempt(@Body() dto: CreateConsultationAttemptDto) {
