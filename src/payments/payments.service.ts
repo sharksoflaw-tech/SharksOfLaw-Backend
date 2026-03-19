@@ -44,8 +44,15 @@ export class PaymentsService {
             }));
         } else {
             // prevent mismatch amounts
-            if (payment.amountInr !== amountInr) throw new BadRequestException('Amount mismatch for consultation');
-            if (payment.status === 'SUCCESS') throw new BadRequestException('Payment already successful');
+            if (payment.status === 'SUCCESS') {
+                throw new BadRequestException('Payment already successful');
+            }
+
+            // ✅ Allow plan change before success
+            if (payment.amountInr !== amountInr) {
+                payment.amountInr = amountInr;
+                await this.paymentsRepo.save(payment);
+            }
         }
 
         // ✅ new attempt per retry

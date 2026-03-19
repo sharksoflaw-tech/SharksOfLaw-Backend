@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {Body, Controller, Get, Param, Patch, Post} from '@nestjs/common';
 import { ConsultationsService } from './consultations.service';
 import { CreateConsultationDto } from './dto/create-consultation.dto';
 
@@ -14,5 +14,15 @@ export class ConsultationsController {
   @Get(':id')
   get(@Param('id') id: string) {
     return this.svc.getById(Number(id));
+  }
+
+  @Patch(':id')
+  async updateConsultation(
+      @Param('id') id: number,
+      @Body() body: any,
+  ) {
+    await this.svc.updateConsultation(id, body);
+
+    return { message: 'Consultation updated successfully' };
   }
 }

@@ -75,4 +75,16 @@ export class ConsultationsService {
     (consult as any).phonepeMerchantTransactionId = phonepeMerchantTransactionId; // dynamic column for tracking
     return this.repo.save(consult);
   }
+
+  async updateConsultation(id: number, data: any) {
+    const consultation = await this.repo.findOne({ where: { id } });
+
+    if (!consultation) {
+      throw new NotFoundException('Consultation not found');
+    }
+
+    await this.repo.update({ id }, data);
+
+    return true;
+  }
 }
