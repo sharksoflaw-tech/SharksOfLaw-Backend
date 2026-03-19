@@ -24,7 +24,7 @@ export class PhonePeClient {
             merchantUserId: input.merchantUserId ?? 'MUID_' + Date.now(),
             amount: input.amountInPaise,
             redirectUrl: input.redirectUrl,
-            redirectMode: 'POST',
+            redirectMode: 'REDIRECT',
             callbackUrl: input.callbackUrl,
             mobileNumber: input.mobileNumber,
             paymentInstrument: { type: 'PAY_PAGE' },
