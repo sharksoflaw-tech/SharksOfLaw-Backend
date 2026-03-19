@@ -15,6 +15,7 @@ export class UpdateJoinLawyerDto {
     @IsOptional() @IsString() phone?: string;
     @IsOptional() @IsEmail() email?: string;
     @IsOptional() @IsString() primaryCity?: string;
+    @IsOptional() @IsString() state?: string;
     @IsOptional() @IsString() officeAddress?: string;
 
     // Step 3
