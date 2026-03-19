@@ -69,7 +69,7 @@ export class JoinLawyerService {
     async initiatePayment(id: string, frontendBaseUrl: string, backendBaseUrl: string) {
         const app = await this.getById(id);
 
-        if (!app.legalCategories?.length) throw new BadRequestException('Select at least one legal category');
+        if (!app.legalCategoryIds?.length) throw new BadRequestException('Select at least one legal category');
         if (!app.languages?.length) throw new BadRequestException('Select at least one language');
 
         const required = [
