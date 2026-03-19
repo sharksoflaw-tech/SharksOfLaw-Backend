@@ -50,7 +50,7 @@ export class PaymentsService {
         }));
 
         const redirectUrl = `${frontendBaseUrl}/consult/payment-status?consultationId=${consultationId}`;
-        const callbackUrl = `${backendBaseUrl}/payments/phonepe/callback`;
+        const callbackUrl = `${backendBaseUrl}/api/payments/phonepe/callback`;
 
         const resp = await this.phonepe.initiatePayPage({
             merchantTransactionId,
@@ -91,7 +91,7 @@ export class PaymentsService {
         }));
 
         const redirectUrl = `${frontendBaseUrl}/join-lawyer/payment-status?appId=${appId}`;
-        const callbackUrl = `${backendBaseUrl}/payments/phonepe/callback`;
+        const callbackUrl = `${backendBaseUrl}/api/payments/phonepe/callback`;
 
         const resp = await this.phonepe.initiatePayPage({
             merchantTransactionId,
@@ -107,6 +107,7 @@ export class PaymentsService {
     }
 
     async handlePhonepeCallback(payload: any) {
+        console.log("PHONEPE CALLBACK RECEIVED:", JSON.stringify(payload).slice(0, 1200));
         const merchantTransactionId =
             payload?.data?.merchantTransactionId || payload?.merchantTransactionId;
 
@@ -147,6 +148,10 @@ export class PaymentsService {
 
             await this.attemptsRepo.save(attempt);
             await this.paymentsRepo.save(payment);
+
+            console.log("FINALIZING PAYMENT SUCCESS. paymentId:", payment.id);
+            console.log("FINALIZING CONSULTATION:", payment.consultationId);
+            console.log("FINALIZING JOINLAW:", payment.joinLawyerApplicationId);
 
             // ✅ CRITICAL: update BUSINESS entity
             if (payment.consultationId) {
