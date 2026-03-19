@@ -6,7 +6,7 @@ import {
   ManyToOne,
 } from "typeorm";
 import { LegalIssue } from "../legal-issues/legal-issue.entity";
-import { Lawyer } from "../lawyers/lawyer.entity";
+import { Lawyer } from "../lawyers/lawyer-profile.entity";
 
 @Entity("consultations")
 export class Consultation {

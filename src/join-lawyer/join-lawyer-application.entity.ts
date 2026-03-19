@@ -7,18 +7,6 @@ import {
     Index,
 } from 'typeorm';
 
-export type JoinLawyerPaymentStatus =
-    | 'DRAFT'
-    | 'PENDING'
-    | 'SUCCESS'
-    | 'FAILED';
-
-export type JoinLawyerApplicationStatus =
-    | 'DRAFT'
-    | 'SUBMITTED'
-    | 'ACTIVE'
-    | 'REJECTED';
-
 @Entity({ name: 'join_lawyer_applications' })
 export class JoinLawyerApplicationEntity {
     @PrimaryGeneratedColumn('uuid')
@@ -98,11 +86,14 @@ export class JoinLawyerApplicationEntity {
     @Column({ type: 'varchar', length: 50, nullable: true })
     phonepeTransactionId: string | null;
 
-    @Column({ type: 'varchar', length: 20, default: 'DRAFT' })
-    paymentStatus: JoinLawyerPaymentStatus;
+    @Column({ name: 'payment_status', type: 'varchar', length: 20, default: 'DRAFT' })
+    paymentStatus: 'DRAFT'|'PENDING'|'SUCCESS'|'FAILED';
 
-    @Column({ type: 'varchar', length: 20, default: 'DRAFT' })
-    applicationStatus: JoinLawyerApplicationStatus;
+    @Column({ name: 'application_status', type: 'varchar', length: 20, default: 'DRAFT' })
+    applicationStatus: 'DRAFT'|'SUBMITTED'|'IN_REVIEW'|'APPROVED'|'REJECTED';
+
+    @Column({ name: 'user_id', type: 'uuid', nullable: true })
+    userId: string | null;
 
     @Column({ type: 'jsonb', nullable: true })
     paymentRaw: any;

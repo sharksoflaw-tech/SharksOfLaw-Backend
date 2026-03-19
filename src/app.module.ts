@@ -10,6 +10,9 @@ import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { HealthModule } from "./health/health.module";
 import {JoinLawyerModule} from "./join-lawyer/join-lawyer.module";
+import {UsersModule} from "./users/users.module";
+import {PaymentsModule} from "./payments/payments.module";
+import {AdminModule} from "./admin/admin.module";
 
 @Module({
   imports: [
@@ -20,6 +23,9 @@ import {JoinLawyerModule} from "./join-lawyer/join-lawyer.module";
       synchronize: true,
       ssl: { rejectUnauthorized: false },
     }),
+    UsersModule,
+    PaymentsModule,
+    AdminModule,
     JoinLawyerModule,
     HealthModule,
     PhonePeModule,

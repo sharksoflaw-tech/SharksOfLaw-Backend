@@ -1,49 +1,48 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { Lawyer } from "./lawyer.entity";
-import { CreateLawyerDto } from "./dto/create-lawyer.dto";
-import { UpdateLawyerDto } from "./dto/update-lawyer.dto";
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { LawyerProfileEntity } from './lawyer-profile.entity';
+import { JoinLawyerApplicationEntity } from '../join-lawyer/join-lawyer-application.entity';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class LawyersService {
   constructor(
-    @InjectRepository(Lawyer)
-    private readonly repo: Repository<Lawyer>,
+      @InjectRepository(LawyerProfileEntity) private lawyerRepo: Repository<LawyerProfileEntity>,
+      @InjectRepository(JoinLawyerApplicationEntity) private joinRepo: Repository<JoinLawyerApplicationEntity>,
+      private users: UsersService,
   ) {}
 
-  // Public listing with optional filter
-  async findAll(practiceArea?: string) {
-    if (practiceArea) {
-      return this.repo.find({
-        where: { practiceArea },
-        order: { rating: "DESC" },
-      });
+  async approveJoinLawyer(applicationId: string) {
+    const app = await this.joinRepo.findOne({ where: { id: applicationId } });
+    if (!app) throw new NotFoundException('Application not found');
+
+    if (app.paymentStatus !== 'SUCCESS' && app.applicationStatus !== 'SUBMITTED') {
+      throw new BadRequestException('Application must be SUBMITTED with successful payment before approval');
     }
-    return this.repo.find({
-      order: { rating: "DESC" },
-    });
-  }
 
-  async findOne(id: number) {
-    const lawyer = await this.repo.findOne({ where: { id } });
-    if (!lawyer) throw new NotFoundException("Lawyer not found");
-    return lawyer;
-  }
+    if (!app.userId) throw new BadRequestException('Application is not linked to a user');
 
-  create(dto: CreateLawyerDto) {
-    const lawyer = this.repo.create(dto);
-    return this.repo.save(lawyer);
-  }
+    // Create profile (idempotent)
+    let profile = await this.lawyerRepo.findOne({where: {userId: app.userId}});
+    if (!profile) {
+      // CHANGE: Use legalCategoryIds to match both entity field names
+      profile = this.lawyerRepo.create({
+        userId: app.userId,
+        displayName: `${app.firstName ?? ''} ${app.lastName ?? ''}`.trim() || 'Lawyer',
+        bio: null,
+        photo: app.photo ?? null,
+        photoMime: app.photoMimeType ?? null,
+        legalCategoryIds: app.legalCategoryIds ?? [],
+        languages: app.languages ?? [],
+        city: app.primaryCity ?? null,
+      });
+      profile = await this.lawyerRepo.save(profile);
+    }
 
-  async update(id: number, dto: UpdateLawyerDto) {
-    const lawyer = await this.findOne(id);
-    Object.assign(lawyer, dto);
-    return this.repo.save(lawyer);
-  }
+    await this.joinRepo.update({ id: applicationId }, { applicationStatus: 'APPROVED' } as any);
+    await this.users.setRole(app.userId, 'LAWYER');
 
-  async remove(id: number) {
-    const result = await this.repo.delete(id);
-    if (!result.affected) throw new NotFoundException("Lawyer not found");
+    return { approved: true, profileId: profile.id };
   }
 }
