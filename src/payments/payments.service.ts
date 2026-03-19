@@ -26,7 +26,15 @@ export class PaymentsService {
         if (!consult) throw new NotFoundException('Consultation not found');
 
         // ✅ ensure payment record exists
-        let payment = await this.paymentsRepo.findOne({ where: { consultationId } });
+        let payment = await this.paymentsRepo.findOne({
+            where: { consultationId },
+            order: { createdAt: 'DESC' }, // 👈 IMPORTANT
+        });
+
+        if (payment && payment.status === 'SUCCESS') {
+            throw new BadRequestException('Payment already successful');
+        }
+
         if (!payment) {
             payment = await this.paymentsRepo.save(this.paymentsRepo.create({
                 consultationId,

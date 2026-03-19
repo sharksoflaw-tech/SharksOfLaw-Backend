@@ -17,7 +17,7 @@ export class PaymentEntity {
     status: PaymentStatus;
 
     @Index()
-    @Column({ name: 'consultation_id', type: 'bigint', nullable: true })
+    @Column({ name: 'consultation_id', type: 'bigint', nullable: true, unique: true })
     consultationId: number | null;
 
     @Index()
