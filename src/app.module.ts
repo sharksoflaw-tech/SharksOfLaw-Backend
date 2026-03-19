@@ -5,7 +5,7 @@ import { LegalIssuesModule } from "./legal-issues/legal-issues.module";
 import { ConsultationsModule } from "./consultations/consultations.module";
 import { ContactModule } from "./contact/contact.module";
 import { TestimonialsModule } from "./testimonials/testimonials.module";
-import { PhonePeModule } from "./payments-phonepe/phonepe.module";
+// import { PhonePeModule } from "./payments-phonepe/phonepe.module";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { HealthModule } from "./health/health.module";
@@ -28,7 +28,7 @@ import {AdminModule} from "./admin/admin.module";
     AdminModule,
     JoinLawyerModule,
     HealthModule,
-    PhonePeModule,
+    // PhonePeModule,
     LawyersModule,
     LegalIssuesModule,
     ConsultationsModule,
