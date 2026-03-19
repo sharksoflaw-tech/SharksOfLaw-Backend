@@ -46,18 +46,18 @@ export class PhonePeController {
   }
 
 
-  @Get("status/:txnId")
-  async getPaymentStatus(@Param("txnId") txnId: string) {
-    const consultation = await this.repo.findOne({
-      where: { phonepeMerchantTransactionId: txnId },
-    });
-
-    if (!consultation) {
-      throw new NotFoundException("Transaction not found");
-    }
-
-    return {
-      status: consultation.paymentStatus, // SUCCESS | FAILED | PENDING
-    };
-  }
+  // @Get("status/:txnId")
+  // async getPaymentStatus(@Param("txnId") txnId: string) {
+  //   const consultation = await this.repo.findOne({
+  //     where: { phonepeMerchantTransactionId: txnId },
+  //   });
+  //
+  //   if (!consultation) {
+  //     throw new NotFoundException("Transaction not found");
+  //   }
+  //
+  //   return {
+  //     status: consultation.paymentStatus, // SUCCESS | FAILED | PENDING
+  //   };
+  // }
 }
