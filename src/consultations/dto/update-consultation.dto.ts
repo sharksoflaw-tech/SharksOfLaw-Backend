@@ -1,10 +1,12 @@
 import {
-  IsString,
-  IsOptional,
-  IsNumber,
   IsEmail,
   IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  IsUUID,
 } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 
 export class UpdateConsultationDto {
   @IsOptional()
@@ -20,6 +22,7 @@ export class UpdateConsultationDto {
   phone?: string;
 
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value?.trim()))
   @IsEmail()
   email?: string;
 
@@ -36,11 +39,12 @@ export class UpdateConsultationDto {
   city?: string;
 
   @IsOptional()
-  @IsNumber()
+  @Type(() => Number)
+  @IsInt()
   legalIssueId?: number;
 
   @IsOptional()
-  @IsString()
+  @IsUUID()
   lawyerProfileId?: string;
 
   @IsOptional()

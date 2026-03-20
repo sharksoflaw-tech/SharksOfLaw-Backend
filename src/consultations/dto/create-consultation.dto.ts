@@ -1,21 +1,43 @@
-import { IsEmail, IsIn, IsInt, IsOptional, IsString, IsUUID } from 'class-validator';
+import {
+  IsEmail,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 
 export class CreateConsultationDto {
-  @IsString() firstName: string;
-  @IsString() lastName: string;
+  @IsString()
+  firstName: string;
+
+  @IsString()
+  lastName: string;
 
   @IsOptional()
-  @IsEmail()
+  @Transform(({ value }) => (value === '' ? undefined : value?.trim()))
   @IsEmail()
   email?: string;
 
-  @IsString() phone: string;
-  @IsOptional() @IsString() code?: string;
+  @IsString()
+  phone: string;
 
-  @IsOptional() @IsString() state?: string;
-  @IsOptional() @IsString() city?: string;
-  @IsOptional() @IsString() caseDetails?: string;
+  @IsOptional()
+  @IsString()
+  code?: string;
 
+  @IsString()
+  state: string;
+
+  @IsString()
+  city: string;
+
+  @IsOptional()
+  @IsString()
+  caseDetails?: string;
+
+  @Type(() => Number)
   @IsInt()
   legalIssueId: number;
 
@@ -26,7 +48,6 @@ export class CreateConsultationDto {
   @IsIn(['quick', 'standard', 'detailed'])
   selectedPlan: 'quick' | 'standard' | 'detailed';
 
-  // ✅ optional when user comes from lawyer card
   @IsOptional()
   @IsUUID()
   lawyerProfileId?: string;
