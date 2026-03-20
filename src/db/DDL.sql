@@ -82,3 +82,16 @@ CREATE TABLE IF NOT EXISTS lawyer_profiles (
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
+
+CREATE UNIQUE INDEX uq_join_lawyer_active_user
+    ON join_lawyer_applications(user_id)
+    WHERE application_status IN ('DRAFT', 'SUBMITTED', 'IN_REVIEW');
+
+ALTER TABLE consultations
+    ALTER COLUMN email DROP NOT NULL;
+
+ALTER TABLE join_lawyer_applications
+    ADD COLUMN IF NOT EXISTS state varchar(120);
+
+ALTER TABLE join_lawyer_applications
+    ADD COLUMN IF NOT EXISTS code varchar(6) DEFAULT '+91';

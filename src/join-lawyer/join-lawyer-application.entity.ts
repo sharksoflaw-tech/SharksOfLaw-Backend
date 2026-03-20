@@ -5,14 +5,16 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     Index,
+    ManyToOne,
+    JoinColumn,
 } from 'typeorm';
+import { UserEntity } from '../users/user.entity';
 
 @Entity({ name: 'join_lawyer_applications' })
 export class JoinLawyerApplicationEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    // Step 1 (MULTI SELECT)
     @Column({ type: 'int', array: true, name: 'legal_category_ids', default: () => 'ARRAY[]::integer[]' })
     legalCategoryIds: number[];
 
@@ -20,17 +22,19 @@ export class JoinLawyerApplicationEntity {
     languages: string[];
 
     @Column({ type: 'int' })
-    planYears: number; // 1 | 2 | 3
+    planYears: number;
 
     @Column({ type: 'int' })
-    amountInr: number; // 499 | 899 | 1499
+    amountInr: number;
 
-    // Step 2 Basic Info
     @Column({ type: 'varchar', length: 80, nullable: true })
     firstName: string | null;
 
     @Column({ type: 'varchar', length: 80, nullable: true })
     lastName: string | null;
+
+    @Column({ type: 'varchar', length: 6, nullable: true, default: '+91' })
+    code: string | null;
 
     @Column({ type: 'varchar', length: 20, nullable: true })
     phone: string | null;
@@ -39,12 +43,14 @@ export class JoinLawyerApplicationEntity {
     email: string | null;
 
     @Column({ type: 'varchar', length: 120, nullable: true })
+    state: string | null;
+
+    @Column({ type: 'varchar', length: 120, nullable: true })
     primaryCity: string | null;
 
     @Column({ type: 'text', nullable: true })
     officeAddress: string | null;
 
-    // Step 3 Member Details
     @Column({ type: 'varchar', length: 50, nullable: true })
     barCouncilEnrollmentNumber: string | null;
 
@@ -55,30 +61,26 @@ export class JoinLawyerApplicationEntity {
     yearsOfExperience: number | null;
 
     @Column({ type: 'varchar', length: 120, nullable: true })
-    courtsOfPractice: string | null; // store as string or CSV
+    courtsOfPractice: string | null;
 
     @Column({ type: 'text', nullable: true })
-    primaryExpertise: string | null; // CSV or JSON string
+    primaryExpertise: string | null;
 
-    // Step 4 Photo (stored in Postgres as BYTEA)
     @Column({ type: 'bytea', nullable: true })
     photo: Buffer | null;
 
     @Column({ type: 'varchar', length: 60, nullable: true })
     photoMimeType: string | null;
 
-    // Step 5 Consent
     @Column({ type: 'boolean', default: false })
     consentAccepted: boolean;
 
     @Column({ type: 'timestamptz', nullable: true })
     consentAcceptedAt: Date | null;
 
-    // Link to consultation payment row (so we can use existing phonepeService)
     @Column({ type: 'int', nullable: true })
     phonepeConsultationId: number | null;
 
-    // Payment tracking
     @Column({ type: 'varchar', length: 40, nullable: true })
     @Index()
     merchantTransactionId: string | null;
@@ -87,13 +89,18 @@ export class JoinLawyerApplicationEntity {
     phonepeTransactionId: string | null;
 
     @Column({ name: 'payment_status', type: 'varchar', length: 20, default: 'DRAFT' })
-    paymentStatus: 'DRAFT'|'PENDING'|'SUCCESS'|'FAILED';
+    paymentStatus: 'DRAFT' | 'PENDING' | 'SUCCESS' | 'FAILED';
 
     @Column({ name: 'application_status', type: 'varchar', length: 20, default: 'DRAFT' })
-    applicationStatus: 'DRAFT'|'SUBMITTED'|'IN_REVIEW'|'APPROVED'|'REJECTED';
+    applicationStatus: 'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED';
 
     @Column({ name: 'user_id', type: 'uuid', nullable: true })
+    @Index()
     userId: string | null;
+
+    @ManyToOne(() => UserEntity, { nullable: true })
+    @JoinColumn({ name: 'user_id' })
+    user?: UserEntity | null;
 
     @Column({ type: 'jsonb', nullable: true })
     paymentRaw: any;
