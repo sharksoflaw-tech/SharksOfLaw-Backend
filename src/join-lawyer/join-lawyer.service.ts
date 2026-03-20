@@ -1,17 +1,10 @@
-import {
-    Injectable,
-    BadRequestException,
-    NotFoundException,
-    Inject,
-    forwardRef,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 
 import { JoinLawyerApplicationEntity } from './join-lawyer-application.entity';
 import { CreateJoinLawyerDto } from './dto/create-join-lawyer.dto';
 import { UpdateJoinLawyerDto } from './dto/update-join-lawyer.dto';
-import { PaymentsService } from '../payments/payments.service';
 import { UsersService } from '../users/users.service';
 
 @Injectable()
@@ -20,50 +13,45 @@ export class JoinLawyerService {
         @InjectRepository(JoinLawyerApplicationEntity)
         private readonly repo: Repository<JoinLawyerApplicationEntity>,
 
-        @Inject(forwardRef(() => PaymentsService))
-        private readonly paymentsService: PaymentsService,
-
         private readonly usersService: UsersService,
     ) {}
 
     private async findActiveApplicationByUserId(userId: string) {
         return this.repo.findOne({
-            where: [
-                { userId, applicationStatus: 'DRAFT' },
-                { userId, applicationStatus: 'SUBMITTED' },
-                { userId, applicationStatus: 'IN_REVIEW' },
-            ],
+            where: {
+                userId,
+                applicationStatus: In(['DRAFT', 'SUBMITTED', 'IN_REVIEW']),
+            },
             order: { updatedAt: 'DESC' },
         });
     }
 
-    // ─────────────────────────────────────────────
-    // CREATE DRAFT (STEP 1)
-    // ─────────────────────────────────────────────
     async createDraft(dto: CreateJoinLawyerDto) {
         const app = this.repo.create({
             ...dto,
             paymentStatus: 'DRAFT',
             applicationStatus: 'DRAFT',
         });
+
         return this.repo.save(app);
     }
 
-    // ─────────────────────────────────────────────
     async getById(id: string) {
         const app = await this.repo.findOne({
             where: { id },
             relations: { user: true } as any,
         });
-        if (!app) throw new NotFoundException('Application not found');
+
+        if (!app) {
+            throw new NotFoundException('Application not found');
+        }
+
         return app;
     }
 
-    // ─────────────────────────────────────────────
     async update(id: string, dto: UpdateJoinLawyerDto) {
         const app = await this.getById(id);
 
-        // ✅ Step 2 identity binding
         const hasPhoneData = dto.phone && dto.code;
 
         if (hasPhoneData) {
@@ -76,20 +64,16 @@ export class JoinLawyerService {
 
             const existingActive = await this.findActiveApplicationByUserId(user.id);
 
-            // another active app already exists for same user
             if (existingActive && existingActive.id !== app.id) {
                 throw new BadRequestException(
-                    `An active lawyer application already exists for this mobile number. Application ID: ${existingActive.id}`,
+                    'An active lawyer application already exists for this mobile number.',
                 );
             }
 
             app.userId = user.id;
         }
 
-        if (dto.email !== undefined) {
-            app.email = dto.email?.trim() || null;
-        }
-
+        if (dto.email !== undefined) app.email = dto.email?.trim() || null;
         if (dto.firstName !== undefined) app.firstName = dto.firstName;
         if (dto.lastName !== undefined) app.lastName = dto.lastName;
         if (dto.phone !== undefined) app.phone = dto.phone;
@@ -115,6 +99,7 @@ export class JoinLawyerService {
         if (dto.consentAccepted === true && !app.consentAccepted) {
             app.consentAcceptedAt = new Date();
         }
+
         if (dto.consentAccepted !== undefined) {
             app.consentAccepted = dto.consentAccepted;
         }
@@ -125,7 +110,6 @@ export class JoinLawyerService {
         return this.repo.save(app);
     }
 
-    // ─────────────────────────────────────────────
     async setPhoto(id: string, buffer: Buffer, mimeType: string) {
         const app = await this.getById(id);
         app.photo = buffer;
@@ -136,23 +120,26 @@ export class JoinLawyerService {
     async getPhoto(id: string) {
         const app = await this.repo.findOne({
             where: { id },
-            select: { id: true, photo: true, photoMimeType: true },
+            select: {
+                id: true,
+                photo: true,
+                photoMimeType: true,
+            },
         });
-        if (!app) throw new NotFoundException('Application not found');
-        return { photo: app.photo, photoMimeType: app.photoMimeType };
+
+        if (!app) {
+            throw new NotFoundException('Application not found');
+        }
+
+        return {
+            photo: app.photo,
+            photoMimeType: app.photoMimeType,
+        };
     }
 
-    // ─────────────────────────────────────────────
-    // ✅ INITIATE PAYMENT (CORRECT WAY)
-    // ─────────────────────────────────────────────
-    async initiatePayment(
-        applicationId: string,
-        frontendBaseUrl: string,
-        backendBaseUrl: string,
-    ) {
-        const app = await this.getById(applicationId);
+    async validateReadyForPayment(id: string) {
+        const app = await this.getById(id);
 
-        // ✅ Validation
         if (!app.legalCategoryIds?.length) {
             throw new BadRequestException('Select at least one legal category');
         }
@@ -176,48 +163,35 @@ export class JoinLawyerService {
             app.primaryExpertise,
             app.photo,
             app.consentAccepted,
+            app.userId,
         ];
 
         if (required.some(v => v === null || v === undefined || v === '' || v === false)) {
             throw new BadRequestException('Complete all steps before payment');
         }
 
-        // ✅ Amount validation (KEEP IN SYNC WITH UI)
         const priceMap: Record<number, number> = {
             1: 499,
             2: 899,
-            3: 1299, // change to 1499 if UI changed
+            3: 1299,
         };
 
         if (app.amountInr !== priceMap[app.planYears]) {
             throw new BadRequestException('Invalid plan amount');
         }
 
-        if (!app.userId) {
-            throw new BadRequestException('Complete basic information before payment');
-        }
-
-        // ✅ Mark payment as pending
-        app.paymentStatus = 'PENDING';
-        await this.repo.save(app);
-
-        // ✅ CREATE / REUSE PAYMENT + CREATE ATTEMPT
-        const paymentAttempt = await this.paymentsService.createAttemptForJoinLawyer(
-            applicationId,
-            app.amountInr,
-            frontendBaseUrl,
-            backendBaseUrl,
-        );
-
-        // ✅ Store raw response for audit/debug
-        app.paymentRaw = paymentAttempt;
-        await this.repo.save(app);
-
-        return paymentAttempt;
+        return app;
     }
 
-    // ─────────────────────────────────────────────
-    // ❌ REMOVE PhonePe callback from here
-    // ✅ Payment callbacks are handled ONLY in PaymentsService
-    // ─────────────────────────────────────────────
+    async markPaymentPending(id: string) {
+        const app = await this.getById(id);
+        app.paymentStatus = 'PENDING';
+        return this.repo.save(app);
+    }
+
+    async updatePaymentRaw(id: string, paymentRaw: any) {
+        const app = await this.getById(id);
+        app.paymentRaw = paymentRaw;
+        return this.repo.save(app);
+    }
 }

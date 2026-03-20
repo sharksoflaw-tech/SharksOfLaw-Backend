@@ -5,7 +5,7 @@ import { Consultation } from './consultation.entity';
 import { CreateConsultationDto } from './dto/create-consultation.dto';
 import { UsersService } from '../users/users.service';
 import { LawyerProfileEntity } from '../lawyers/lawyer-profile.entity';
-import {UpdateConsultationDto} from "./dto/update-consultation.dto";
+import { UpdateConsultationDto } from "./dto/update-consultation.dto";
 
 @Injectable()
 export class ConsultationsService {
