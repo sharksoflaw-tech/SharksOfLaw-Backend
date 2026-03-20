@@ -5,6 +5,7 @@ import { Consultation } from './consultation.entity';
 import { CreateConsultationDto } from './dto/create-consultation.dto';
 import { UsersService } from '../users/users.service';
 import { LawyerProfileEntity } from '../lawyers/lawyer-profile.entity';
+import {UpdateConsultationDto} from "./dto/update-consultation.dto";
 
 @Injectable()
 export class ConsultationsService {
@@ -45,7 +46,7 @@ export class ConsultationsService {
       selectedPlan: dto.selectedPlan,
       firstName: dto.firstName,
       lastName: dto.lastName,
-      email: dto.email ?? null,
+      email: dto.email?.trim() ?? null,
       phone: dto.phone,
       code,
       state: dto.state ?? null,
@@ -76,7 +77,7 @@ export class ConsultationsService {
     return this.repo.save(consult);
   }
 
-  async updateConsultation(id: number, data: any) {
+  async updateConsultation(id: number, data: UpdateConsultationDto) {
     const consultation = await this.repo.findOne({ where: { id } });
 
     if (!consultation) {

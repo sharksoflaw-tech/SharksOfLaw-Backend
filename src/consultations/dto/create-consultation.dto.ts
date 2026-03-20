@@ -6,6 +6,7 @@ export class CreateConsultationDto {
 
   @IsOptional()
   @IsEmail()
+  @IsEmail()
   email?: string;
 
   @IsString() phone: string;
