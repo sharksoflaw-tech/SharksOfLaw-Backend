@@ -1,12 +1,5 @@
-import {
-  IsEmail,
-  IsIn,
-  IsInt,
-  IsOptional,
-  IsString,
-  IsUUID,
-} from 'class-validator';
-import { Transform, Type } from 'class-transformer';
+import { IsString, IsOptional, IsNumber, IsEmail, IsIn, ValidateIf } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class UpdateConsultationDto {
   @IsOptional()
@@ -22,9 +15,13 @@ export class UpdateConsultationDto {
   phone?: string;
 
   @IsOptional()
-  @Transform(({ value }) => (value === '' ? undefined : value?.trim()))
+  @Transform(({ value }) => {
+    if (value === '') return null;
+    return value;
+  })
+  @ValidateIf((_, value) => value !== null && value !== undefined)
   @IsEmail()
-  email?: string;
+  email?: string | null;
 
   @IsOptional()
   @IsString()
@@ -39,12 +36,11 @@ export class UpdateConsultationDto {
   city?: string;
 
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
+  @IsNumber()
   legalIssueId?: number;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   lawyerProfileId?: string;
 
   @IsOptional()

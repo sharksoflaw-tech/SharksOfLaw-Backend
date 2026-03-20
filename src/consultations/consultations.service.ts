@@ -46,7 +46,7 @@ export class ConsultationsService {
       selectedPlan: dto.selectedPlan,
       firstName: dto.firstName,
       lastName: dto.lastName,
-      email: dto.email?.trim() ?? null,
+      email: dto.email?.trim() || null,
       phone: dto.phone,
       code,
       state: dto.state ?? null,
@@ -84,7 +84,13 @@ export class ConsultationsService {
       throw new NotFoundException('Consultation not found');
     }
 
-    await this.repo.update({ id }, data);
+    await this.repo.update(
+        { id },
+        {
+          ...data,
+          email: data.email?.trim?.() || null,
+        }
+    );
 
     return true;
   }
