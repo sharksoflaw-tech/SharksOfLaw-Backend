@@ -1,4 +1,4 @@
-// src/lawyers/lawyer-profile.entity.ts
+// src/lawyers/lawyers.entity.ts
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -11,15 +11,15 @@ import {
 import { UserEntity } from '../users/user.entity';
 
 @Entity({ name: 'lawyer_profiles' })
-export class LawyerProfileEntity {
-  @PrimaryGeneratedColumn('uuid')
+export class LawyersEntity {
+  @PrimaryGeneratedColumn()
   id: string;
 
   @ManyToOne(() => UserEntity, { nullable: false })
   @JoinColumn({ name: 'userId' })
   user: UserEntity;
 
-  @Column({ type: 'uuid' })
+  @Column({ name: 'user_id', type: 'uuid' })
   userId: string;
 
   @Column({ name: 'display_name', type: 'varchar', length: 160 })
@@ -56,7 +56,10 @@ export class LawyerProfileEntity {
   @Column({ type: 'varchar', length: 80, nullable: true })
   city: string | null;
 
-  @Column({ type: 'boolean', default: true })
+  @Column({ type: 'varchar', length: 80, nullable: true })
+  state: string | null;
+
+  @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
 
   @CreateDateColumn({ name: 'created_at' })

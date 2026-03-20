@@ -2,15 +2,15 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { LawyerProfileEntity } from './lawyer-profile.entity';
+import { LawyersEntity } from './lawyers.entity';
 import { JoinLawyerEntity } from '../join-lawyer/join-lawyer.entity';
 import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class LawyersService {
   constructor(
-      @InjectRepository(LawyerProfileEntity)
-      private readonly lawyerRepo: Repository<LawyerProfileEntity>,
+      @InjectRepository(LawyersEntity)
+      private readonly lawyerRepo: Repository<LawyersEntity>,
 
       @InjectRepository(JoinLawyerEntity)
       private readonly joinRepo: Repository<JoinLawyerEntity>,
@@ -24,12 +24,8 @@ export class LawyersService {
       throw new NotFoundException('Application not found');
     }
 
-    if (app.applicationStatus !== 'SUBMITTED') {
+    if (app.status !== 'SUBMITTED') {
       throw new BadRequestException('Application must be SUBMITTED before approval');
-    }
-
-    if (app.paymentStatus !== 'SUCCESS') {
-      throw new BadRequestException('Successful payment is required before approval');
     }
 
     if (!app.userId) {
@@ -46,7 +42,7 @@ export class LawyersService {
         displayName:
             `${app.firstName ?? ''} ${app.lastName ?? ''}`.trim() || 'Lawyer',
         bio: null,
-        city: app.primaryCity ?? null,
+        city: app.city ?? null,
         photoPath: app.photoPath ?? null,
         photoMimeType: app.photoMimeType ?? null,
         photoFileName: app.photoFileName ?? null,
@@ -59,7 +55,7 @@ export class LawyersService {
     } else {
       profile.displayName =
           `${app.firstName ?? ''} ${app.lastName ?? ''}`.trim() || profile.displayName;
-      profile.city = app.primaryCity ?? profile.city;
+      profile.city = app.city ?? profile.city;
       profile.photoPath = app.photoPath ?? profile.photoPath;
       profile.photoMimeType = app.photoMimeType ?? profile.photoMimeType;
       profile.photoFileName = app.photoFileName ?? profile.photoFileName;
@@ -70,7 +66,7 @@ export class LawyersService {
       profile = await this.lawyerRepo.save(profile);
     }
 
-    app.applicationStatus = 'APPROVED';
+    app.status = 'APPROVED';
     await this.joinRepo.save(app);
 
     await this.users.setRole(app.userId, 'LAWYER');

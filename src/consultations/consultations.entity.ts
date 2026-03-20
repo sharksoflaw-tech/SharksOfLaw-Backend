@@ -9,7 +9,7 @@ import {
   JoinColumn,
   Index,
 } from 'typeorm';
-import { LawyerProfileEntity } from '../lawyers/lawyer-profile.entity';
+import { LawyersEntity } from '../lawyers/lawyers.entity';
 import { UserEntity } from '../users/user.entity';
 
 export type ConsultationStatus = 'DRAFT' | 'SUBMITTED' | 'CLOSED';
@@ -33,9 +33,9 @@ export class Consultation {
   @Column({ name: 'lawyer_profile_id', type: 'uuid', nullable: true })
   lawyerProfileId: string | null;
 
-  @ManyToOne(() => LawyerProfileEntity, { nullable: true })
+  @ManyToOne(() => LawyersEntity, { nullable: true })
   @JoinColumn({ name: 'lawyer_profile_id' })
-  lawyerProfile?: LawyerProfileEntity | null;
+  lawyerProfile?: LawyersEntity | null;
 
   // Step 1 selections
   @Column({ name: 'legal_category_id', type: 'int' })

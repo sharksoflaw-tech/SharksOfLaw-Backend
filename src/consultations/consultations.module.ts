@@ -4,11 +4,11 @@ import { Consultation } from './consultations.entity';
 import { ConsultationsService } from './consultations.service';
 import { ConsultationsController } from './consultations.controller';
 import { UsersModule } from '../users/users.module';
-import { LawyerProfileEntity } from '../lawyers/lawyer-profile.entity';
+import { LawyersEntity } from '../lawyers/lawyers.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Consultation, LawyerProfileEntity]),
+    TypeOrmModule.forFeature([Consultation, LawyersEntity]),
     UsersModule,
   ],
   controllers: [ConsultationsController],

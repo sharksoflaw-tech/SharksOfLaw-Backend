@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Consultation } from './consultations.entity';
 import { CreateConsultationDto } from './dto/create-consultation.dto';
 import { UsersService } from '../users/users.service';
-import { LawyerProfileEntity } from '../lawyers/lawyer-profile.entity';
+import { LawyersEntity } from '../lawyers/lawyers.entity';
 import { UpdateConsultationDto } from "./dto/update-consultation.dto";
 
 @Injectable()
@@ -13,8 +13,8 @@ export class ConsultationsService {
       @InjectRepository(Consultation)
       private readonly repo: Repository<Consultation>,
 
-      @InjectRepository(LawyerProfileEntity)
-      private readonly lawyerRepo: Repository<LawyerProfileEntity>,
+      @InjectRepository(LawyersEntity)
+      private readonly lawyerRepo: Repository<LawyersEntity>,
 
       private readonly usersService: UsersService,
   ) {}

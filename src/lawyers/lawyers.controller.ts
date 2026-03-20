@@ -10,15 +10,15 @@ import {
 import type { Response } from 'express';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { LawyerProfileEntity } from './lawyer-profile.entity';
+import { LawyersEntity } from './lawyers.entity';
 import * as fs from 'fs';
 import * as path from 'path';
 
 @Controller('lawyers')
 export class LawyersController {
     constructor(
-        @InjectRepository(LawyerProfileEntity)
-        private readonly lawyerRepo: Repository<LawyerProfileEntity>,
+        @InjectRepository(LawyersEntity)
+        private readonly lawyerRepo: Repository<LawyersEntity>,
     ) {}
 
     @Get(':id/photo')
