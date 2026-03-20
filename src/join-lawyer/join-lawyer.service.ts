@@ -190,4 +190,16 @@ export class JoinLawyerService {
             photoMimeType: app.photoMimeType || 'image/jpeg',
         };
     }
+
+    async getAllApplications() {
+        const applications = await this.repo.find({
+            order: { updatedAt: 'DESC' },
+            relations: { user: true } as any,
+        });
+
+        return applications.map((app) => ({
+            ...app,
+            photoUrl: app.photoPath ? `/join-lawyer/applications/${app.id}/photo` : null,
+        }));
+    }
 }

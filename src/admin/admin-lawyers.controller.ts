@@ -1,109 +1,42 @@
+// src/admin/admin-lawyers.controller.ts
 import {
     Controller,
     Get,
     Param,
-    Post,
-    Body,
-    Query,
-    BadRequestException,
-    UseGuards,
+    Patch,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-
-import { JoinLawyerApplicationEntity } from '../join-lawyer/join-lawyer-application.entity';
-import { LawyerProfileEntity } from '../lawyers/lawyer-profile.entity';
-import { UsersService } from '../users/users.service';
-
-import { Roles } from './roles.decorator';
-import { RolesGuard } from './roles.guard';
-import { ApproveLawyerDto } from './dto/approve-lawyer.dto';
-import { RejectLawyerDto } from './dto/reject-lawyer.dto';
+import { JoinLawyerService } from '../join-lawyer/join-lawyer.service';
+import { LawyersService } from '../lawyers/lawyers.service';
 
 @Controller('admin/lawyers')
-@UseGuards(RolesGuard)
-@Roles('ADMIN')
 export class AdminLawyersController {
     constructor(
-        @InjectRepository(JoinLawyerApplicationEntity)
-        private readonly joinRepo: Repository<JoinLawyerApplicationEntity>,
-        @InjectRepository(LawyerProfileEntity)
-        private readonly profileRepo: Repository<LawyerProfileEntity>,
-        private readonly usersService: UsersService,
+        private readonly joinLawyerService: JoinLawyerService,
+        private readonly lawyersService: LawyersService,
     ) {}
 
-    // ✅ List applications
     @Get('applications')
-    async list(
-        @Query('status') status?: 'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED',
-    ) {
-        const where = status ? {applicationStatus: status} : {};
-        return this.joinRepo.find({
-            where,
-            order: {createdAt: 'DESC'},
-        });
+    getApplications() {
+        return this.joinLawyerService.getAllApplications();
     }
 
-    // ✅ Approve
-    @Post('applications/:id/approve')
-    async approve(
-        @Param('id') id: string,
-        @Body() dto: ApproveLawyerDto,
-    ) {
-        const app = await this.joinRepo.findOne({ where: { id } });
-        if (!app) throw new BadRequestException('Application not found');
-
-        if (app.paymentStatus !== 'SUCCESS') {
-            throw new BadRequestException('Payment not successful');
-        }
-
-        if (!app.userId) {
-            throw new BadRequestException('Application not linked to user');
-        }
-
-        let profile = await this.profileRepo.findOne({
-            where: { userId: app.userId },
-        });
-
-        if (!profile) {
-            profile = this.profileRepo.create({
-                userId: app.userId,
-                displayName:
-                    dto.displayName ??
-                    `${app.firstName ?? ''} ${app.lastName ?? ''}`.trim(),
-                bio: dto.bio ?? null,
-                city: dto.city ?? app.primaryCity ?? null,
-                photo: app.photo ?? null,
-                photoMime: app.photoMimeType ?? null,
-                legalCategoryIds: app.legalCategoryIds ?? [],
-                languages: app.languages ?? [],
-                isActive: true,
-            });
-
-            await this.profileRepo.save(profile);
-        }
-
-        app.applicationStatus = 'APPROVED' as any;
-        await this.joinRepo.save(app);
-
-        await this.usersService.setRole(app.userId, 'LAWYER');
-
-        return { approved: true, profileId: profile.id };
+    @Get('applications/:id')
+    getApplicationById(@Param('id') id: string) {
+        return this.joinLawyerService.getById(id);
     }
 
-    // ✅ Reject
-    @Post('applications/:id/reject')
-    async reject(
-        @Param('id') id: string,
-        @Body() dto: RejectLawyerDto,
-    ) {
-        const app = await this.joinRepo.findOne({ where: { id } });
-        if (!app) throw new BadRequestException('Application not found');
+    @Patch('applications/:id/approve')
+    approveApplication(@Param('id') id: string) {
+        return this.lawyersService.approveJoinLawyer(id);
+    }
 
-        app.applicationStatus = 'REJECTED' as any;
-        (app as any).rejectionReason = dto.reason;
+    @Get('approved')
+    getApprovedLawyers() {
+        return this.lawyersService.findAllApprovedLawyers();
+    }
 
-        await this.joinRepo.save(app);
-        return { rejected: true };
+    @Get('approved/:id')
+    getApprovedLawyerById(@Param('id') id: string) {
+        return this.lawyersService.getLawyerById(id);
     }
 }

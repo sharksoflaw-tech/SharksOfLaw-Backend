@@ -5,34 +5,39 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  Index,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { UserEntity } from '../users/user.entity';
 
 @Entity({ name: 'lawyer_profiles' })
 export class LawyerProfileEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  // Link to the main user identity
-  @Index({ unique: true })
-  @Column({ name: 'user_id', type: 'uuid' })
+  @ManyToOne(() => UserEntity, { nullable: false })
+  @JoinColumn({ name: 'userId' })
+  user: UserEntity;
+
+  @Column({ type: 'uuid' })
   userId: string;
 
-  // Display info
   @Column({ name: 'display_name', type: 'varchar', length: 160 })
   displayName: string;
 
   @Column({ type: 'text', nullable: true })
   bio: string | null;
 
-  // Photo (copied from application on approval)
-  @Column({ type: 'bytea', nullable: true })
-  photo: Buffer | null;
+  // File-storage based photo metadata
+  @Column({ name: 'photo_path', type: 'varchar', length: 500, nullable: true })
+  photoPath: string | null;
 
-  @Column({ name: 'photo_mime', type: 'varchar', length: 60, nullable: true })
-  photoMime: string | null;
+  @Column({ name: 'photo_mime_type', type: 'varchar', length: 120, nullable: true })
+  photoMimeType: string | null;
 
-  // Practice details
+  @Column({ name: 'photo_file_name', type: 'varchar', length: 255, nullable: true })
+  photoFileName: string | null;
+
   @Column({
     name: 'legal_category_ids',
     type: 'int',
@@ -51,7 +56,6 @@ export class LawyerProfileEntity {
   @Column({ type: 'varchar', length: 80, nullable: true })
   city: string | null;
 
-  // Visibility
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
 
