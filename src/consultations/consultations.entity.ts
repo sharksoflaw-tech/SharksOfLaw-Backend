@@ -1,4 +1,4 @@
-// src/consultations/consultation.entity.ts
+// src/consultations/consultations.entity.ts
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -38,8 +38,8 @@ export class Consultation {
   lawyerProfile?: LawyerProfileEntity | null;
 
   // Step 1 selections
-  @Column({ name: 'legal_issue_id', type: 'int' })
-  legalIssueId: number;
+  @Column({ name: 'legal_category_id', type: 'int' })
+  legalCategoryId: number;
 
   @Column({ type: 'varchar', length: 60 })
   language: string;

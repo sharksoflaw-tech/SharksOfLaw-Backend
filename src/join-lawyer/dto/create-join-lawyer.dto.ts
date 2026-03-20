@@ -1,15 +1,127 @@
-import { IsArray, IsInt } from 'class-validator';
+import {
+    IsArray,
+    IsBoolean,
+    IsEmail,
+    IsIn,
+    IsInt,
+    IsOptional,
+    IsString,
+    Length,
+    MaxLength,
+    Min,
+    ArrayUnique,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateJoinLawyerDto {
     @IsArray()
+    @ArrayUnique()
+    @Type(() => Number)
+    @IsInt({ each: true })
     legalCategoryIds: number[];
 
     @IsArray()
+    @ArrayUnique()
+    @IsString({ each: true })
+    @MaxLength(50, { each: true })
     languages: string[];
 
-    @IsInt()
-    planYears: number;
+    @IsString()
+    @IsIn(['starter', 'growth', 'pro'])
+    selectedPlan: 'starter' | 'growth' | 'pro';
 
+    @IsOptional()
+    @IsString()
+    @MaxLength(80)
+    firstName?: string | null;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(80)
+    lastName?: string | null;
+
+    @IsOptional()
+    @IsString()
+    @Length(10, 10)
+    phone?: string | null;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(10)
+    code?: string | null;
+
+    @IsOptional()
+    @IsEmail()
+    @MaxLength(150)
+    email?: string | null;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(120)
+    city?: string | null;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(120)
+    state?: string | null;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(2000)
+    officeAddress?: string | null;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(50)
+    barCouncilEnrollmentNumber?: string | null;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(120)
+    barCouncilState?: string | null;
+
+    @IsOptional()
+    @Type(() => Number)
     @IsInt()
-    amountInr: number;
+    @Min(0)
+    yearsOfExperience?: number | null;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(500)
+    courtsOfPractice?: string | null;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(255)
+    photoFileName?: string | null;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(255)
+    photoMimeType?: string | null;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(2000)
+    photoPath?: string | null;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(255)
+    barCouncilIdFileName?: string | null;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(255)
+    barCouncilIdMimeType?: string | null;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(2000)
+    barCouncilIdPath?: string | null;
+
+    @IsOptional()
+    @IsBoolean()
+    consentAccepted?: boolean;
 }

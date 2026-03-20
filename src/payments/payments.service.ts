@@ -4,8 +4,8 @@ import { Repository } from 'typeorm';
 import { PaymentEntity } from './payment.entity';
 import { PaymentAttemptEntity } from './payment-attempt.entity';
 import { PhonePeClient } from './phonepe.client';
-import { Consultation } from '../consultations/consultation.entity';
-import { JoinLawyerApplicationEntity } from '../join-lawyer/join-lawyer-application.entity';
+import { Consultation } from '../consultations/consultations.entity';
+import { JoinLawyerEntity } from '../join-lawyer/join-lawyer.entity';
 
 @Injectable()
 export class PaymentsService {
@@ -13,7 +13,7 @@ export class PaymentsService {
         @InjectRepository(PaymentEntity) private paymentsRepo: Repository<PaymentEntity>,
         @InjectRepository(PaymentAttemptEntity) private attemptsRepo: Repository<PaymentAttemptEntity>,
         @InjectRepository(Consultation) private consultationsRepo: Repository<Consultation>,
-        @InjectRepository(JoinLawyerApplicationEntity) private joinLawyerRepo: Repository<JoinLawyerApplicationEntity>,
+        @InjectRepository(JoinLawyerEntity) private joinLawyerRepo: Repository<JoinLawyerEntity>,
         private phonepe: PhonePeClient,
     ) {}
 

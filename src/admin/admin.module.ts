@@ -5,7 +5,7 @@ import { AdminLawyersController } from './admin-lawyers.controller';
 import { AdminUsersController } from './admin-users.controller';
 import { AdminPaymentsController } from './admin-payments.controller';
 
-import { JoinLawyerApplicationEntity } from '../join-lawyer/join-lawyer-application.entity';
+import { JoinLawyerEntity } from '../join-lawyer/join-lawyer.entity';
 import { LawyerProfileEntity } from '../lawyers/lawyer-profile.entity';
 import { UserEntity } from '../users/user.entity';
 import { PaymentEntity } from '../payments/payment.entity';
@@ -22,7 +22,7 @@ import {RolesGuard} from "./roles.guard";
         JoinLawyerModule,
         LawyersModule,
         TypeOrmModule.forFeature([
-            JoinLawyerApplicationEntity,
+            JoinLawyerEntity,
             LawyerProfileEntity,
             UserEntity,
             PaymentEntity,

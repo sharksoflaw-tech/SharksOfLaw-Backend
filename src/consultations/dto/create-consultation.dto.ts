@@ -39,7 +39,7 @@ export class CreateConsultationDto {
 
   @Type(() => Number)
   @IsInt()
-  legalIssueId: number;
+  legalCategoryId: number;
 
   @IsString()
   language: string;

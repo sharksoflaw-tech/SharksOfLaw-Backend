@@ -6,88 +6,129 @@ import {
     IsInt,
     IsOptional,
     IsString,
+    Length,
+    MaxLength,
+    Min,
+    ArrayUnique,
 } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { Type } from 'class-transformer';
 
 export class UpdateJoinLawyerDto {
     @IsOptional()
     @IsArray()
+    @ArrayUnique()
+    @Type(() => Number)
+    @IsInt({ each: true })
     legalCategoryIds?: number[];
 
     @IsOptional()
     @IsArray()
+    @ArrayUnique()
+    @IsString({ each: true })
+    @MaxLength(50, { each: true })
     languages?: string[];
 
     @IsOptional()
-    @IsInt()
-    planYears?: number;
+    @IsString()
+    @IsIn(['starter', 'growth', 'pro'])
+    selectedPlan?: 'starter' | 'growth' | 'pro';
 
     @IsOptional()
-    @IsInt()
-    amountInr?: number;
+    @IsIn(['DRAFT', 'SUBMITTED', 'IN_REVIEW', 'APPROVED', 'REJECTED'])
+    status?: 'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED';
 
     @IsOptional()
     @IsString()
-    firstName?: string;
+    @MaxLength(80)
+    firstName?: string | null;
 
     @IsOptional()
     @IsString()
-    lastName?: string;
+    @MaxLength(80)
+    lastName?: string | null;
 
     @IsOptional()
     @IsString()
-    phone?: string;
+    @Length(10, 10)
+    phone?: string | null;
 
     @IsOptional()
     @IsString()
-    code?: string;
+    @MaxLength(10)
+    code?: string | null;
 
     @IsOptional()
-    @Transform(({ value }) => (value === '' ? undefined : value))
     @IsEmail()
-    email?: string;
+    @MaxLength(150)
+    email?: string | null;
 
     @IsOptional()
     @IsString()
-    state?: string;
+    @MaxLength(120)
+    city?: string | null;
 
     @IsOptional()
     @IsString()
-    primaryCity?: string;
+    @MaxLength(120)
+    state?: string | null;
 
     @IsOptional()
     @IsString()
-    officeAddress?: string;
+    @MaxLength(2000)
+    officeAddress?: string | null;
 
     @IsOptional()
     @IsString()
-    barCouncilEnrollmentNumber?: string;
+    @MaxLength(50)
+    barCouncilEnrollmentNumber?: string | null;
 
     @IsOptional()
     @IsString()
-    barCouncilState?: string;
+    @MaxLength(120)
+    barCouncilState?: string | null;
 
     @IsOptional()
+    @Type(() => Number)
     @IsInt()
-    yearsOfExperience?: number;
+    @Min(0)
+    yearsOfExperience?: number | null;
 
     @IsOptional()
     @IsString()
-    courtsOfPractice?: string;
+    @MaxLength(500)
+    courtsOfPractice?: string | null;
 
     @IsOptional()
     @IsString()
-    primaryExpertise?: string;
+    @MaxLength(255)
+    photoFileName?: string | null;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(255)
+    photoMimeType?: string | null;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(2000)
+    photoPath?: string | null;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(255)
+    barCouncilIdFileName?: string | null;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(255)
+    barCouncilIdMimeType?: string | null;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(2000)
+    barCouncilIdPath?: string | null;
 
     @IsOptional()
     @IsBoolean()
     consentAccepted?: boolean;
-
-    @IsOptional()
-    @IsIn(['DRAFT', 'PENDING', 'SUCCESS', 'FAILED'])
-    paymentStatus?: 'DRAFT' | 'PENDING' | 'SUCCESS' | 'FAILED';
-
-    @IsOptional()
-    @IsIn(['DRAFT', 'SUBMITTED', 'IN_REVIEW', 'APPROVED', 'REJECTED'])
-    applicationStatus?: 'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED';
 }

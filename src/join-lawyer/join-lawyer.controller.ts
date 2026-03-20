@@ -75,6 +75,19 @@ export class JoinLawyerController {
         });
     }
 
+    @Post(':id/upload-bar-council-id')
+    @UseInterceptors(FileInterceptor('file'))
+    async uploadBarCouncilId(
+        @Param('id') id: string,
+        @UploadedFile() file: Express.Multer.File,
+    ) {
+        if (!file) {
+            throw new BadRequestException('File is required');
+        }
+
+        return this.svc.uploadBarCouncilId(id, file);
+    }
+
     @Get('applications/:id/photo')
     async getPhoto(
         @Param('id') id: string,

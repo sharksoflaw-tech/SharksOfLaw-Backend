@@ -5,7 +5,6 @@ import { LegalIssuesModule } from "./legal-issues/legal-issues.module";
 import { ConsultationsModule } from "./consultations/consultations.module";
 import { ContactModule } from "./contact/contact.module";
 import { TestimonialsModule } from "./testimonials/testimonials.module";
-// import { PhonePeModule } from "./payments-phonepe/phonepe.module";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { HealthModule } from "./health/health.module";
@@ -13,6 +12,8 @@ import {JoinLawyerModule} from "./join-lawyer/join-lawyer.module";
 import {UsersModule} from "./users/users.module";
 import {PaymentsModule} from "./payments/payments.module";
 import {AdminModule} from "./admin/admin.module";
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -22,6 +23,10 @@ import {AdminModule} from "./admin/admin.module";
       autoLoadEntities: true,
       synchronize: true,
       ssl: { rejectUnauthorized: false },
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), process.env.UPLOAD_ROOT || '/data/uploads'),
+      serveRoot: '/data/uploads',
     }),
     UsersModule,
     PaymentsModule,

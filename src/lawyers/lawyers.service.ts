@@ -3,7 +3,7 @@ import { Injectable, BadRequestException, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { LawyerProfileEntity } from './lawyer-profile.entity';
-import { JoinLawyerApplicationEntity } from '../join-lawyer/join-lawyer-application.entity';
+import { JoinLawyerEntity } from '../join-lawyer/join-lawyer.entity';
 import { UsersService } from '../users/users.service';
 
 @Injectable()
@@ -12,8 +12,8 @@ export class LawyersService {
       @InjectRepository(LawyerProfileEntity)
       private readonly lawyerRepo: Repository<LawyerProfileEntity>,
 
-      @InjectRepository(JoinLawyerApplicationEntity)
-      private readonly joinRepo: Repository<JoinLawyerApplicationEntity>,
+      @InjectRepository(JoinLawyerEntity)
+      private readonly joinRepo: Repository<JoinLawyerEntity>,
 
       private readonly users: UsersService,
   ) {}

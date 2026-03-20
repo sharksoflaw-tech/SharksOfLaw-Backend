@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { JoinLawyerApplicationEntity } from './join-lawyer-application.entity';
+import { JoinLawyerEntity } from './join-lawyer.entity';
 import { JoinLawyerController } from './join-lawyer.controller';
 import { JoinLawyerService } from './join-lawyer.service';
 import { UsersModule } from '../users/users.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([JoinLawyerApplicationEntity]),
+        TypeOrmModule.forFeature([JoinLawyerEntity]),
         UsersModule,
     ],
     controllers: [JoinLawyerController],

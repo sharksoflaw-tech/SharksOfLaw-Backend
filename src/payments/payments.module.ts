@@ -7,8 +7,8 @@ import { PaymentAttemptEntity } from './payment-attempt.entity';
 import { PaymentsService } from './payments.service';
 import { PaymentsController } from './payments.controller';
 import { PhonePeClient } from './phonepe.client';
-import { Consultation } from '../consultations/consultation.entity';
-import { JoinLawyerApplicationEntity } from '../join-lawyer/join-lawyer-application.entity';
+import { Consultation } from '../consultations/consultations.entity';
+import { JoinLawyerEntity } from '../join-lawyer/join-lawyer.entity';
 
 @Module({
     imports: [
@@ -16,7 +16,7 @@ import { JoinLawyerApplicationEntity } from '../join-lawyer/join-lawyer-applicat
             PaymentEntity,
             PaymentAttemptEntity,
             Consultation,
-            JoinLawyerApplicationEntity,
+            JoinLawyerEntity,
         ]),
     ],
     controllers: [PaymentsController],

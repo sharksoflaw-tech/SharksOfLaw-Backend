@@ -37,7 +37,7 @@ export class UpdateConsultationDto {
 
   @IsOptional()
   @IsNumber()
-  legalIssueId?: number;
+  legalCategoryId?: number;
 
   @IsOptional()
   @IsString()

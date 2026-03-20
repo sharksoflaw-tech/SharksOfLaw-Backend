@@ -8,7 +8,7 @@ import { Repository } from 'typeorm';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 
-import { JoinLawyerApplicationEntity } from './join-lawyer-application.entity';
+import { JoinLawyerEntity } from './join-lawyer.entity';
 import { CreateJoinLawyerDto } from './dto/create-join-lawyer.dto';
 import { UpdateJoinLawyerDto } from './dto/update-join-lawyer.dto';
 import { UsersService } from '../users/users.service';
@@ -16,8 +16,8 @@ import { UsersService } from '../users/users.service';
 @Injectable()
 export class JoinLawyerService {
     constructor(
-        @InjectRepository(JoinLawyerApplicationEntity)
-        private readonly repo: Repository<JoinLawyerApplicationEntity>,
+        @InjectRepository(JoinLawyerEntity)
+        private readonly repo: Repository<JoinLawyerEntity>,
         private readonly usersService: UsersService,
     ) {}
 
@@ -32,9 +32,9 @@ export class JoinLawyerService {
     private async findActiveApplicationByUserId(userId: string) {
         return this.repo.findOne({
             where: [
-                { userId, applicationStatus: 'DRAFT' },
-                { userId, applicationStatus: 'SUBMITTED' },
-                { userId, applicationStatus: 'IN_REVIEW' },
+                { userId, status: 'DRAFT' },
+                { userId, status: 'SUBMITTED' },
+                { userId, status: 'IN_REVIEW' },
             ],
             order: { updatedAt: 'DESC' },
         });
@@ -43,12 +43,12 @@ export class JoinLawyerService {
     async createDraft(dto: CreateJoinLawyerDto) {
         const app = this.repo.create({
             ...dto,
-            paymentStatus: 'DRAFT',
-            applicationStatus: 'DRAFT',
+            status: 'DRAFT',
         });
 
         return this.repo.save(app);
     }
+
 
     async getById(id: string) {
         const app = await this.repo.findOne({
@@ -100,17 +100,15 @@ export class JoinLawyerService {
         if (dto.phone !== undefined) app.phone = dto.phone;
         if (dto.code !== undefined) app.code = dto.code;
         if (dto.state !== undefined) app.state = dto.state;
-        if (dto.primaryCity !== undefined) app.primaryCity = dto.primaryCity;
+        if (dto.city !== undefined) app.city = dto.city;
         if (dto.officeAddress !== undefined) app.officeAddress = dto.officeAddress?.trim() || null;
         if (dto.legalCategoryIds !== undefined) app.legalCategoryIds = dto.legalCategoryIds;
         if (dto.languages !== undefined) app.languages = dto.languages;
-        if (dto.planYears !== undefined) app.planYears = dto.planYears;
-        if (dto.amountInr !== undefined) app.amountInr = dto.amountInr;
+        if (dto.selectedPlan !== undefined) app.selectedPlan = dto.selectedPlan;
         if (dto.barCouncilEnrollmentNumber !== undefined) app.barCouncilEnrollmentNumber = dto.barCouncilEnrollmentNumber;
         if (dto.barCouncilState !== undefined) app.barCouncilState = dto.barCouncilState;
         if (dto.yearsOfExperience !== undefined) app.yearsOfExperience = dto.yearsOfExperience;
         if (dto.courtsOfPractice !== undefined) app.courtsOfPractice = dto.courtsOfPractice;
-        if (dto.primaryExpertise !== undefined) app.primaryExpertise = dto.primaryExpertise;
 
         if (dto.consentAccepted === true && !app.consentAccepted) {
             app.consentAcceptedAt = new Date();
@@ -119,8 +117,7 @@ export class JoinLawyerService {
             app.consentAccepted = dto.consentAccepted;
         }
 
-        if (dto.paymentStatus !== undefined) app.paymentStatus = dto.paymentStatus;
-        if (dto.applicationStatus !== undefined) app.applicationStatus = dto.applicationStatus;
+        if (dto.status !== undefined) app.status = dto.status;
 
         return this.repo.save(app);
     }
@@ -153,7 +150,6 @@ export class JoinLawyerService {
         await fs.writeFile(fullPath, file.buffer);
 
         app.photoPath = relativePath;
-        app.photoMimeType = file.mimetype;
         app.photoFileName = file.originalname || fileName;
 
         await this.repo.save(app);
@@ -170,7 +166,6 @@ export class JoinLawyerService {
             select: {
                 id: true,
                 photoPath: true,
-                photoMimeType: true,
             },
         });
 
@@ -188,6 +183,25 @@ export class JoinLawyerService {
         return {
             photo,
             photoMimeType: app.photoMimeType || 'image/jpeg',
+        };
+    }
+
+    async uploadBarCouncilId(id: string, file: Express.Multer.File) {
+        const app = await this.repo.findOne({ where: { id } });
+
+        if (!app) {
+            throw new NotFoundException('Join lawyer application not found');
+        }
+
+        const baseUrl = process.env.FILE_BASE_URL || 'http://localhost:3000';
+        const fileUrl = `${baseUrl}/uploads/bar-council-ids/${file.filename}`;
+
+        app.barCouncilIdPath = fileUrl;
+        await this.repo.save(app);
+
+        return {
+            success: true,
+            fileUrl,
         };
     }
 
