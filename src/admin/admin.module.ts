@@ -14,6 +14,8 @@ import { PaymentEntity } from '../payments/payment.entity';
 import { PaymentAttemptEntity } from '../payments/payment-attempt.entity';
 
 import { UsersModule } from '../users/users.module';
+import {JoinLawyerModule} from "../join-lawyer/join-lawyer.module";
+import {LawyersModule} from "../lawyers/lawyers.module";
 
 @Module({
     imports: [
@@ -24,6 +26,8 @@ import { UsersModule } from '../users/users.module';
             UserEntity,
             PaymentEntity,
             PaymentAttemptEntity,
+            JoinLawyerModule,
+            LawyersModule,
         ]),
     ],
     controllers: [
