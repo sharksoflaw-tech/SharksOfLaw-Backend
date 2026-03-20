@@ -5,8 +5,6 @@ import { AdminLawyersController } from './admin-lawyers.controller';
 import { AdminUsersController } from './admin-users.controller';
 import { AdminPaymentsController } from './admin-payments.controller';
 
-import { RolesGuard } from './roles.guard';
-
 import { JoinLawyerApplicationEntity } from '../join-lawyer/join-lawyer-application.entity';
 import { LawyerProfileEntity } from '../lawyers/lawyer-profile.entity';
 import { UserEntity } from '../users/user.entity';
@@ -16,6 +14,7 @@ import { PaymentAttemptEntity } from '../payments/payment-attempt.entity';
 import { UsersModule } from '../users/users.module';
 import {JoinLawyerModule} from "../join-lawyer/join-lawyer.module";
 import {LawyersModule} from "../lawyers/lawyers.module";
+import {LawyersService} from "../lawyers/lawyers.service";
 
 @Module({
     imports: [
@@ -35,6 +34,6 @@ import {LawyersModule} from "../lawyers/lawyers.module";
         AdminUsersController,
         AdminPaymentsController,
     ],
-    providers: [RolesGuard],
+    providers: [LawyersService],
 })
 export class AdminModule {}
