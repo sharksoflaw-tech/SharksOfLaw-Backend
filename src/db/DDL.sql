@@ -95,3 +95,7 @@ ALTER TABLE join_lawyer_applications
 
 ALTER TABLE join_lawyer_applications
     ADD COLUMN IF NOT EXISTS code varchar(6) DEFAULT '+91';
+
+ALTER TABLE join_lawyer_applications DROP COLUMN IF EXISTS photo;
+ALTER TABLE join_lawyer_applications ADD COLUMN IF NOT EXISTS photo_path text;
+ALTER TABLE join_lawyer_applications ADD COLUMN IF NOT EXISTS photo_file_name varchar(255);

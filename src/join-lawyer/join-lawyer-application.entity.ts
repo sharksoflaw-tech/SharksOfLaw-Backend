@@ -5,10 +5,7 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     Index,
-    ManyToOne,
-    JoinColumn,
 } from 'typeorm';
-import { UserEntity } from '../users/user.entity';
 
 @Entity({ name: 'join_lawyer_applications' })
 export class JoinLawyerApplicationEntity {
@@ -33,20 +30,20 @@ export class JoinLawyerApplicationEntity {
     @Column({ type: 'varchar', length: 80, nullable: true })
     lastName: string | null;
 
-    @Column({ type: 'varchar', length: 6, nullable: true, default: '+91' })
-    code: string | null;
-
-    @Column({ type: 'varchar', length: 20, nullable: true })
+    @Column({ type: 'varchar', length: 10, nullable: true })
     phone: string | null;
+
+    @Column({ type: 'varchar', length: 10, nullable: true })
+    code: string | null;
 
     @Column({ type: 'varchar', length: 150, nullable: true })
     email: string | null;
 
     @Column({ type: 'varchar', length: 120, nullable: true })
-    state: string | null;
+    primaryCity: string | null;
 
     @Column({ type: 'varchar', length: 120, nullable: true })
-    primaryCity: string | null;
+    state: string | null;
 
     @Column({ type: 'text', nullable: true })
     officeAddress: string | null;
@@ -60,17 +57,20 @@ export class JoinLawyerApplicationEntity {
     @Column({ type: 'int', nullable: true })
     yearsOfExperience: number | null;
 
-    @Column({ type: 'varchar', length: 120, nullable: true })
+    @Column({ type: 'varchar', length: 500, nullable: true })
     courtsOfPractice: string | null;
 
     @Column({ type: 'text', nullable: true })
     primaryExpertise: string | null;
 
-    @Column({ type: 'bytea', nullable: true })
-    photo: Buffer | null;
+    @Column({ name: 'photo_path', type: 'text', nullable: true })
+    photoPath: string | null;
 
-    @Column({ type: 'varchar', length: 60, nullable: true })
+    @Column({ name: 'photo_mime_type', type: 'varchar', length: 60, nullable: true })
     photoMimeType: string | null;
+
+    @Column({ name: 'photo_file_name', type: 'varchar', length: 255, nullable: true })
+    photoFileName: string | null;
 
     @Column({ type: 'boolean', default: false })
     consentAccepted: boolean;
@@ -95,12 +95,7 @@ export class JoinLawyerApplicationEntity {
     applicationStatus: 'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED';
 
     @Column({ name: 'user_id', type: 'uuid', nullable: true })
-    @Index()
     userId: string | null;
-
-    @ManyToOne(() => UserEntity, { nullable: true })
-    @JoinColumn({ name: 'user_id' })
-    user?: UserEntity | null;
 
     @Column({ type: 'jsonb', nullable: true })
     paymentRaw: any;
