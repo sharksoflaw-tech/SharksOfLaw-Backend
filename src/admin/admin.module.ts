@@ -14,19 +14,19 @@ import { PaymentAttemptEntity } from '../payments/payment-attempt.entity';
 import { UsersModule } from '../users/users.module';
 import {JoinLawyerModule} from "../join-lawyer/join-lawyer.module";
 import {LawyersModule} from "../lawyers/lawyers.module";
-import {LawyersService} from "../lawyers/lawyers.service";
+import {RolesGuard} from "./roles.guard";
 
 @Module({
     imports: [
         UsersModule,
+        JoinLawyerModule,
+        LawyersModule,
         TypeOrmModule.forFeature([
             JoinLawyerApplicationEntity,
             LawyerProfileEntity,
             UserEntity,
             PaymentEntity,
             PaymentAttemptEntity,
-            JoinLawyerModule,
-            LawyersModule,
         ]),
     ],
     controllers: [
@@ -34,6 +34,6 @@ import {LawyersService} from "../lawyers/lawyers.service";
         AdminUsersController,
         AdminPaymentsController,
     ],
-    providers: [LawyersService],
+    providers: [RolesGuard],
 })
 export class AdminModule {}
