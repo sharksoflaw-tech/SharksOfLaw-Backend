@@ -25,7 +25,7 @@ export class JoinLawyerService {
         return process.env.UPLOAD_ROOT || path.join(process.cwd(), 'uploads');
     }
 
-    private getPublicPhotoUrl(appId: string) {
+    private getPublicPhotoUrl(appId: number) {
         return `/api/join-lawyer/applications/${appId}/photo`;
     }
 
@@ -48,7 +48,7 @@ export class JoinLawyerService {
         return this.repo.save(app);
     }
 
-    async getById(id: string) {
+    async getById(id: number) {
         const app = await this.repo.findOne({
             where: { id },
             relations: ['user'],
@@ -64,7 +64,7 @@ export class JoinLawyerService {
         };
     }
 
-    async update(id: string, dto: UpdateJoinLawyerDto) {
+    async update(id: number, dto: UpdateJoinLawyerDto) {
         const app = await this.repo.findOne({
             where: { id },
         });
@@ -135,7 +135,7 @@ export class JoinLawyerService {
     }
 
     async setPhoto(
-        id: string,
+        id: number,
         file: { buffer: Buffer; mimetype: string; originalname?: string },
     ) {
         const app = await this.repo.findOne({
@@ -157,12 +157,12 @@ export class JoinLawyerService {
             throw new BadRequestException('Unsupported file type');
         }
 
-        const dir = path.join(this.uploadRoot, 'join-lawyer', id);
+        const dir = path.join(this.uploadRoot, 'join-lawyer', String(id));
         await fs.mkdir(dir, { recursive: true });
 
         const fileName = `profile${ext}`;
         const fullPath = path.join(dir, fileName);
-        const relativePath = path.join('join-lawyer', id, fileName);
+        const relativePath = path.join('join-lawyer', String(id), fileName);
 
         await fs.writeFile(fullPath, file.buffer);
 
@@ -178,7 +178,7 @@ export class JoinLawyerService {
         };
     }
 
-    async getPhoto(id: string) {
+    async getPhoto(id: number) {
         const app = await this.repo.findOne({
             where: { id },
         });
@@ -200,7 +200,7 @@ export class JoinLawyerService {
         };
     }
 
-    async uploadBarCouncilId(id: string, file: Express.Multer.File) {
+    async uploadBarCouncilId(id: number, file: Express.Multer.File) {
         const app = await this.repo.findOne({
             where: { id },
         });
