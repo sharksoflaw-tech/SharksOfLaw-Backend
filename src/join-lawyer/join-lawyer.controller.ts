@@ -28,12 +28,12 @@ export class JoinLawyerController {
     }
 
     @Get('applications/:id')
-    get(@Param('id') id: string) {
+    get(@Param('id') id: number) {
         return this.svc.getById(id);
     }
 
     @Patch('applications/:id')
-    update(@Param('id') id: string, @Body() dto: UpdateJoinLawyerDto) {
+    update(@Param('id') id: number, @Body() dto: UpdateJoinLawyerDto) {
         return this.svc.update(id, dto);
     }
 
@@ -48,7 +48,7 @@ export class JoinLawyerController {
         }),
     )
     async uploadPhoto(
-        @Param('id') id: string,
+        @Param('id') id: number,
         @UploadedFile() file: Express.Multer.File,
     ) {
         if (!file) {
@@ -65,7 +65,7 @@ export class JoinLawyerController {
     @Post('applications/:id/upload-bar-council-id')
     @UseInterceptors(FileInterceptor('file'))
     async uploadBarCouncilId(
-        @Param('id') id: string,
+        @Param('id') id: number,
         @UploadedFile() file: Express.Multer.File,
     ) {
         if (!file) {
@@ -77,7 +77,7 @@ export class JoinLawyerController {
 
     @Get('applications/:id/photo')
     async getPhoto(
-        @Param('id') id: string,
+        @Param('id') id: number,
         @Res({ passthrough: true }) res: Response,
     ) {
         const { photo, photoMimeType } = await this.svc.getPhoto(id);
