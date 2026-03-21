@@ -4,7 +4,7 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 
@@ -26,16 +26,15 @@ export class JoinLawyerService {
     }
 
     private getPublicPhotoUrl(appId: string) {
-        return `/join-lawyer/applications/${appId}/photo`;
+        return `/api/join-lawyer/applications/${appId}/photo`;
     }
 
     private async findActiveApplicationByUserId(userId: string) {
         return this.repo.findOne({
-            where: [
-                { userId, status: 'DRAFT' },
-                { userId, status: 'SUBMITTED' },
-                { userId, status: 'IN_REVIEW' },
-            ],
+            where: {
+                userId,
+                status: In(['DRAFT', 'SUBMITTED', 'IN_REVIEW']),
+            },
             order: { updatedAt: 'DESC' },
         });
     }
@@ -49,11 +48,10 @@ export class JoinLawyerService {
         return this.repo.save(app);
     }
 
-
     async getById(id: string) {
         const app = await this.repo.findOne({
             where: { id },
-            relations: { user: true } as any,
+            relations: ['user'],
         });
 
         if (!app) {
@@ -67,19 +65,22 @@ export class JoinLawyerService {
     }
 
     async update(id: string, dto: UpdateJoinLawyerDto) {
-        const app = await this.repo.findOne({ where: { id } });
+        const app = await this.repo.findOne({
+            where: { id },
+        });
 
         if (!app) {
             throw new NotFoundException('Application not found');
         }
 
-        const hasPhoneData = dto.phone && dto.code;
+        const hasPhoneData = !!dto.phone && !!dto.code;
 
         if (hasPhoneData) {
-            const mobileE164 = `${dto.code}${dto.phone}`.replace(/\s+/g, '');
+            const normalizedPhone = String(dto.phone).replace(/\D/g, '');
+            const normalizedCode = String(dto.code).trim();
 
             const user = await this.usersService.findOrCreateByMobile(
-                mobileE164,
+                `${normalizedCode}${normalizedPhone}`,
                 dto.email?.trim() || null,
             );
 
@@ -95,20 +96,30 @@ export class JoinLawyerService {
         }
 
         if (dto.email !== undefined) app.email = dto.email?.trim() || null;
-        if (dto.firstName !== undefined) app.firstName = dto.firstName;
-        if (dto.lastName !== undefined) app.lastName = dto.lastName;
-        if (dto.phone !== undefined) app.phone = dto.phone;
-        if (dto.code !== undefined) app.code = dto.code;
-        if (dto.state !== undefined) app.state = dto.state;
-        if (dto.city !== undefined) app.city = dto.city;
-        if (dto.officeAddress !== undefined) app.officeAddress = dto.officeAddress?.trim() || null;
+        if (dto.firstName !== undefined) app.firstName = dto.firstName?.trim() || null;
+        if (dto.lastName !== undefined) app.lastName = dto.lastName?.trim() || null;
+        if (dto.phone !== undefined) app.phone = dto.phone?.trim() || null;
+        if (dto.code !== undefined) app.code = dto.code?.trim() || null;
+        if (dto.state !== undefined) app.state = dto.state?.trim() || null;
+        if (dto.city !== undefined) app.city = dto.city?.trim() || null;
+        if (dto.officeAddress !== undefined) {
+            app.officeAddress = dto.officeAddress?.trim() || null;
+        }
         if (dto.legalCategoryIds !== undefined) app.legalCategoryIds = dto.legalCategoryIds;
         if (dto.languages !== undefined) app.languages = dto.languages;
         if (dto.selectedPlan !== undefined) app.selectedPlan = dto.selectedPlan;
-        if (dto.barCouncilEnrollmentNumber !== undefined) app.barCouncilEnrollmentNumber = dto.barCouncilEnrollmentNumber;
-        if (dto.barCouncilState !== undefined) app.barCouncilState = dto.barCouncilState;
-        if (dto.yearsOfExperience !== undefined) app.yearsOfExperience = dto.yearsOfExperience;
-        if (dto.courtsOfPractice !== undefined) app.courtsOfPractice = dto.courtsOfPractice;
+        if (dto.barCouncilEnrollmentNumber !== undefined) {
+            app.barCouncilEnrollmentNumber = dto.barCouncilEnrollmentNumber?.trim() || null;
+        }
+        if (dto.barCouncilState !== undefined) {
+            app.barCouncilState = dto.barCouncilState?.trim() || null;
+        }
+        if (dto.yearsOfExperience !== undefined) {
+            app.yearsOfExperience = dto.yearsOfExperience;
+        }
+        if (dto.courtsOfPractice !== undefined) {
+            app.courtsOfPractice = dto.courtsOfPractice?.trim() || null;
+        }
 
         if (dto.consentAccepted === true && !app.consentAccepted) {
             app.consentAcceptedAt = new Date();
@@ -116,14 +127,20 @@ export class JoinLawyerService {
         if (dto.consentAccepted !== undefined) {
             app.consentAccepted = dto.consentAccepted;
         }
-
-        if (dto.status !== undefined) app.status = dto.status;
+        if (dto.status !== undefined) {
+            app.status = dto.status;
+        }
 
         return this.repo.save(app);
     }
 
-    async setPhoto(id: string, file: { buffer: Buffer; mimetype: string; originalname?: string }) {
-        const app = await this.repo.findOne({ where: { id } });
+    async setPhoto(
+        id: string,
+        file: { buffer: Buffer; mimetype: string; originalname?: string },
+    ) {
+        const app = await this.repo.findOne({
+            where: { id },
+        });
 
         if (!app) {
             throw new NotFoundException('Application not found');
@@ -151,6 +168,7 @@ export class JoinLawyerService {
 
         app.photoPath = relativePath;
         app.photoFileName = file.originalname || fileName;
+        app.photoMimeType = file.mimetype;
 
         await this.repo.save(app);
 
@@ -163,10 +181,6 @@ export class JoinLawyerService {
     async getPhoto(id: string) {
         const app = await this.repo.findOne({
             where: { id },
-            select: {
-                id: true,
-                photoPath: true,
-            },
         });
 
         if (!app) {
@@ -187,7 +201,9 @@ export class JoinLawyerService {
     }
 
     async uploadBarCouncilId(id: string, file: Express.Multer.File) {
-        const app = await this.repo.findOne({ where: { id } });
+        const app = await this.repo.findOne({
+            where: { id },
+        });
 
         if (!app) {
             throw new NotFoundException('Join lawyer application not found');
@@ -197,6 +213,9 @@ export class JoinLawyerService {
         const fileUrl = `${baseUrl}/uploads/bar-council-ids/${file.filename}`;
 
         app.barCouncilIdPath = fileUrl;
+        app.barCouncilIdFileName = file.originalname || file.filename;
+        app.barCouncilIdMimeType = file.mimetype;
+
         await this.repo.save(app);
 
         return {
@@ -208,12 +227,12 @@ export class JoinLawyerService {
     async getAllApplications() {
         const applications = await this.repo.find({
             order: { updatedAt: 'DESC' },
-            relations: { user: true } as any,
+            relations: ['user'],
         });
 
         return applications.map((app) => ({
             ...app,
-            photoUrl: app.photoPath ? `/join-lawyer/applications/${app.id}/photo` : null,
+            photoUrl: app.photoPath ? this.getPublicPhotoUrl(app.id) : null,
         }));
     }
 }

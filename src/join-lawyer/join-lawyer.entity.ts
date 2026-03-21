@@ -14,7 +14,7 @@ export type JoinLawyerApplicationStatus = 'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 
 @Entity({ name: 'join_lawyer_applications' })
 export class JoinLawyerEntity {
     @PrimaryGeneratedColumn()
-    id: string;
+    id: number;
 
     @Column({ name: 'user_id', type: 'uuid', nullable: true })
     userId: string | null;

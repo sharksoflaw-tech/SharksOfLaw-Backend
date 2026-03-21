@@ -33,23 +33,10 @@ export class JoinLawyerController {
     }
 
     @Patch('applications/:id')
-    update(
-        @Param('id') id: string,
-        @Body() dto: UpdateJoinLawyerDto,
-    ) {
+    update(@Param('id') id: string, @Body() dto: UpdateJoinLawyerDto) {
         return this.svc.update(id, dto);
     }
 
-    @Post('applications/:id/photo')
-    @UseInterceptors(
-        FileInterceptor('file', {
-            limits: { fileSize: 3 * 1024 * 1024 },
-            fileFilter: (_req, file, cb) => {
-                const ok = ['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype);
-                cb(ok ? null : new BadRequestException('Only JPG/PNG/WEBP allowed'), ok);
-            },
-        }),
-    )
     @Post('applications/:id/photo')
     @UseInterceptors(
         FileInterceptor('file', {
@@ -75,7 +62,7 @@ export class JoinLawyerController {
         });
     }
 
-    @Post(':id/upload-bar-council-id')
+    @Post('applications/:id/upload-bar-council-id')
     @UseInterceptors(FileInterceptor('file'))
     async uploadBarCouncilId(
         @Param('id') id: string,
@@ -94,10 +81,6 @@ export class JoinLawyerController {
         @Res({ passthrough: true }) res: Response,
     ) {
         const { photo, photoMimeType } = await this.svc.getPhoto(id);
-
-        if (!photo) {
-            throw new BadRequestException('Photo not found');
-        }
 
         res.set({
             'Content-Type': photoMimeType || 'image/jpeg',
