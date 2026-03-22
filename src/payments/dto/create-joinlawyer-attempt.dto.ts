@@ -1,7 +1,7 @@
 import { IsInt, IsUUID, IsIn } from 'class-validator';
 
 export class CreateJoinLawyerAttemptDto {
-    @IsUUID()
+    @IsInt()
     joinLawyerApplicationId: number;
 
     @IsInt()
