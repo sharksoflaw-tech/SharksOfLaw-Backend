@@ -7,20 +7,47 @@ import { UserEntity, UserRole } from './user.entity';
 export class UsersService {
     constructor(@InjectRepository(UserEntity) private repo: Repository<UserEntity>) {}
 
-    async findOrCreateByMobile(mobileE164: string, email?: string | null) {
-        let user = await this.repo.findOne({ where: { mobileE164 } });
+    async findOrCreateByMobile(
+        mobileE164: string,
+        email?: string | null,
+        roleToAdd: 'CLIENT' | 'LAWYER' | 'ADMIN' = 'CLIENT',
+    ) {
+        const normalizedMobileE164 = String(mobileE164).replace(/\s+/g, '').trim();
+        const normalizedEmail = email?.trim() || null;
+
+        let user = await this.repo.findOne({
+            where: { mobileE164: normalizedMobileE164 },
+        });
+
         if (!user) {
             user = this.repo.create({
-                mobileE164,
-                email: email ?? null,
-                role: 'CLIENT',
+                mobileE164: normalizedMobileE164,
+                email: normalizedEmail,
+                roles: [roleToAdd],
                 mobileVerified: false,
             });
-            user = await this.repo.save(user);
-        } else if (email && !user.email) {
-            user.email = email;
+
+            return this.repo.save(user);
+        }
+
+        const currentRoles = Array.isArray(user.roles) ? user.roles : [];
+
+        let changed = false;
+
+        if (!currentRoles.includes(roleToAdd)) {
+            user.roles = [...currentRoles, roleToAdd];
+            changed = true;
+        }
+
+        if (normalizedEmail && !user.email) {
+            user.email = normalizedEmail;
+            changed = true;
+        }
+
+        if (changed) {
             user = await this.repo.save(user);
         }
+
         return user;
     }
 

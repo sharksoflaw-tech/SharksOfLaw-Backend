@@ -99,3 +99,20 @@ ALTER TABLE join_lawyer_applications
 ALTER TABLE join_lawyer_applications DROP COLUMN IF EXISTS photo;
 ALTER TABLE join_lawyer_applications ADD COLUMN IF NOT EXISTS photo_path text;
 ALTER TABLE join_lawyer_applications ADD COLUMN IF NOT EXISTS photo_file_name varchar(255);
+
+
+ALTER TABLE users
+ADD COLUMN roles text[] NOT NULL DEFAULT ARRAY['CLIENT']::text[];
+
+UPDATE users
+SET roles = ARRAY[role]::text[]
+WHERE role IS NOT NULL;
+
+ALTER TABLE users
+DROP COLUMN role;
+
+ALTER TABLE users
+ADD CONSTRAINT users_roles_check
+CHECK (
+  roles <@ ARRAY['CLIENT', 'LAWYER', 'ADMIN']::text[]
+);

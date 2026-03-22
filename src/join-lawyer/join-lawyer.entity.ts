@@ -38,7 +38,7 @@ export class JoinLawyerEntity {
     @Column({ name: 'last_name', type: 'varchar', length: 80, nullable: true })
     lastName: string | null;
 
-    @Column({ name: 'phone', type: 'varchar', length: 10, nullable: true })
+    @Column({ name: 'phone', type: 'varchar', length: 10, nullable: true, unique: true })
     phone: string | null;
 
     @Column({ name: 'code', type: 'varchar', length: 10, nullable: true })
@@ -56,7 +56,7 @@ export class JoinLawyerEntity {
     @Column({ name: 'office_address', type: 'text', nullable: true })
     officeAddress: string | null;
 
-    @Column({ name: 'bar_council_enrollment_number', type: 'varchar', length: 50, nullable: true })
+    @Column({ name: 'bar_council_enrollment_number', type: 'varchar', length: 50, nullable: true, unique: true })
     barCouncilEnrollmentNumber: string | null;
 
     @Column({ name: 'bar_council_state', type: 'varchar', length: 120, nullable: true })
