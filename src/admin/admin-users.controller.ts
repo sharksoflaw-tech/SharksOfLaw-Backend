@@ -9,17 +9,16 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Raw } from 'typeorm';
+import { Repository, Raw } from 'typeorm';
 
-import { UserEntity } from '../users/user.entity';
+import { UserEntity, UserRole } from '../users/user.entity';
 import { Roles } from './roles.decorator';
 import { RolesGuard } from './roles.guard';
 import { SetUserRoleDto } from './dto/set-user-role.dto';
 
 @Controller('admin/users')
 @UseGuards(RolesGuard)
-@Roles('ADMIN')
+@Roles(UserRole.ADMIN)
 export class AdminUsersController {
     constructor(
         @InjectRepository(UserEntity)
@@ -27,7 +26,7 @@ export class AdminUsersController {
     ) {}
 
     @Get()
-    async list(@Query('role') role?: 'CLIENT' | 'LAWYER' | 'ADMIN') {
+    async list(@Query('role') role?: UserRole) {
         if (!role) {
             return this.usersRepo.find({
                 order: { createdAt: 'DESC' },
@@ -58,7 +57,7 @@ export class AdminUsersController {
             throw new NotFoundException('User not found');
         }
 
-        const currentRoles = Array.isArray(user.roles) ? user.roles : [];
+        const currentRoles: UserRole[] = Array.isArray(user.roles) ? user.roles : [];
 
         if (!currentRoles.includes(dto.role)) {
             user.roles = [...currentRoles, dto.role];

@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { LawyersEntity } from './lawyers.entity';
 import { JoinLawyerEntity } from '../join-lawyer/join-lawyer.entity';
 import { UsersService } from '../users/users.service';
+import { UserRole } from '../users/user.entity';
 
 @Injectable()
 export class LawyersService {
@@ -79,7 +80,7 @@ export class LawyersService {
     app.status = 'APPROVED';
     await this.joinRepo.save(app);
 
-    await this.users.setRole(app.userId, 'LAWYER');
+    await this.users.setRole(app.userId, UserRole.LAWYER);
 
     return {
       approved: true,

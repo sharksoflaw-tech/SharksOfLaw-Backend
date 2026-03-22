@@ -5,12 +5,15 @@ import { UserEntity, UserRole } from './user.entity';
 
 @Injectable()
 export class UsersService {
-    constructor(@InjectRepository(UserEntity) private repo: Repository<UserEntity>) {}
+    constructor(
+        @InjectRepository(UserEntity)
+        private readonly repo: Repository<UserEntity>,
+    ) {}
 
     async findOrCreateByMobile(
         mobileE164: string,
         email?: string | null,
-        rolesToAdd: ('CLIENT' | 'LAWYER' | 'ADMIN')[] = ['CLIENT'],
+        rolesToAdd: UserRole[] = [UserRole.CLIENT],
     ) {
         let user = await this.repo.findOne({ where: { mobileE164 } });
 
@@ -21,6 +24,7 @@ export class UsersService {
                 roles: [...new Set(rolesToAdd)],
                 mobileVerified: false,
             });
+
             return this.repo.save(user);
         }
 
@@ -32,7 +36,7 @@ export class UsersService {
         }
 
         const currentRoles = Array.isArray(user.roles) ? user.roles : [];
-        const mergedRoles = [...new Set([...currentRoles, ...rolesToAdd])];
+        const mergedRoles = [...new Set([...currentRoles, ...rolesToAdd])] as UserRole[];
 
         if (mergedRoles.length !== currentRoles.length) {
             user.roles = mergedRoles;
@@ -47,7 +51,16 @@ export class UsersService {
     }
 
     async setRole(userId: string, role: UserRole) {
-        await this.repo.update({ id: userId }, { role });
-        return this.repo.findOne({ where: { id: userId } });
+        const user = await this.repo.findOne({ where: { id: userId } });
+        if (!user) return null;
+
+        const currentRoles = Array.isArray(user.roles) ? user.roles : [];
+
+        if (!currentRoles.includes(role)) {
+            user.roles = [...currentRoles, role];
+            await this.repo.save(user);
+        }
+
+        return user;
     }
 }

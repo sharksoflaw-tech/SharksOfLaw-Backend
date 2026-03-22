@@ -1,6 +1,7 @@
-import { IsIn } from 'class-validator';
+import { IsEnum } from 'class-validator';
+import { UserRole } from '../../users/user.entity';
 
 export class SetUserRoleDto {
-    @IsIn(['CLIENT', 'LAWYER', 'ADMIN'])
-    role: 'CLIENT' | 'LAWYER' | 'ADMIN';
+    @IsEnum(UserRole)
+    role: UserRole;
 }

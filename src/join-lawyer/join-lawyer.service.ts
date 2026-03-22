@@ -12,6 +12,7 @@ import { JoinLawyerEntity } from './join-lawyer.entity';
 import { CreateJoinLawyerDto } from './dto/create-join-lawyer.dto';
 import { UpdateJoinLawyerDto } from './dto/update-join-lawyer.dto';
 import { UsersService } from '../users/users.service';
+import { UserRole } from '../users/user.entity';
 
 @Injectable()
 export class JoinLawyerService {
@@ -93,7 +94,7 @@ export class JoinLawyerService {
         const user = await this.usersService.findOrCreateByMobile(
             mobileE164,
             normalizedEmail,
-            'LAWYER',
+            [UserRole.CLIENT, UserRole.LAWYER],
         );
 
         const existingSubmittedOrReview = await this.repo.findOne({
@@ -206,7 +207,7 @@ export class JoinLawyerService {
             const user = await this.usersService.findOrCreateByMobile(
                 `${normalizedCode}${normalizedPhone}`,
                 normalizedEmail,
-                'LAWYER',
+                [UserRole.CLIENT, UserRole.LAWYER],
             );
 
             const existingActive = await this.repo.findOne({

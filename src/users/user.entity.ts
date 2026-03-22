@@ -19,8 +19,7 @@ export class UserEntity {
     email: string | null;
 
     @Column({
-        type: 'enum',
-        enum: UserRole,
+        type: 'text',
         array: true,
         default: [UserRole.CLIENT],
     })
