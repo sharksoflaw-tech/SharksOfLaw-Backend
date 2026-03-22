@@ -81,19 +81,20 @@ export class PaymentsService {
     }
 
     async createAttemptForJoinLawyer(appId: number, amountInr: number, frontendBaseUrl: string, backendBaseUrl: string) {
-        const numericAppId = appId;
-
-        if (Number.isNaN(numericAppId)) {
-            throw new BadRequestException('Invalid join lawyer application id');
-        }
-
-        const app = await this.joinLawyerRepo.findOne({
-            where: { id: numericAppId },
-        });
+        const app = await this.joinLawyerRepo.findOne({ where: { id: appId } as any });
 
         if (!app) throw new NotFoundException('Join lawyer application not found');
 
-        let payment = await this.paymentsRepo.findOne({ where: { joinLawyerApplicationId: appId } });
+        // ✅ ensure payment record exists
+        let payment = await this.paymentsRepo.findOne({
+            where: { joinLawyerApplicationId: appId },
+            order: { createdAt: 'DESC' }, // 👈 IMPORTANT
+        });
+
+        if (payment && payment.status === 'SUCCESS') {
+            throw new BadRequestException('Payment already successful');
+        }
+
         if (!payment) {
             payment = await this.paymentsRepo.save(this.paymentsRepo.create({
                 joinLawyerApplicationId: appId,
@@ -102,8 +103,16 @@ export class PaymentsService {
                 currency: 'INR',
             }));
         } else {
-            if (payment.amountInr !== amountInr) throw new BadRequestException('Amount mismatch for application');
-            if (payment.status === 'SUCCESS') throw new BadRequestException('Payment already successful');
+            // prevent mismatch amounts
+            if (payment.status === 'SUCCESS') {
+                throw new BadRequestException('Payment already successful');
+            }
+
+            // ✅ Allow plan change before success
+            if (payment.amountInr !== amountInr) {
+                payment.amountInr = amountInr;
+                await this.paymentsRepo.save(payment);
+            }
         }
 
         const merchantTransactionId = this.newMerchantTxnId('JOINLAW');
@@ -255,7 +264,7 @@ export class PaymentsService {
             if (payment.joinLawyerApplicationId) {
                 await this.joinLawyerRepo.update(
                     { id: payment.joinLawyerApplicationId },
-                    { JoinLawyerApplicationStatus: "SUBMITTED" } as any
+                    { status: "SUBMITTED" } as any
                 );
             }
 
@@ -272,13 +281,6 @@ export class PaymentsService {
         await this.paymentsRepo.save(payment);
 
         console.log("❌ PAYMENT FAILED:", payment.id);
-
-        if (payment.joinLawyerApplicationId) {
-            await this.joinLawyerRepo.update(
-                { id: payment.joinLawyerApplicationId },
-                { paymentStatus: "FAILED" } as any
-            );
-        }
 
         return { success: false, status: "FAILED" };
     }

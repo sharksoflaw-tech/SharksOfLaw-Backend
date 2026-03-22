@@ -1,4 +1,4 @@
-import { IsInt, IsUUID, IsIn } from 'class-validator';
+import { IsInt, IsIn } from 'class-validator';
 
 export class CreateJoinLawyerAttemptDto {
     @IsInt()
