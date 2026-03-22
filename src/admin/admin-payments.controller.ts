@@ -5,12 +5,13 @@ import {Repository} from 'typeorm';
 import {PaymentEntity} from '../payments/payment.entity';
 import {PaymentAttemptEntity} from '../payments/payment-attempt.entity';
 
+import { UserRole } from '../users/user.entity';
 import {Roles} from './roles.decorator';
 import {RolesGuard} from './roles.guard';
 
 @Controller('admin/payments')
 @UseGuards(RolesGuard)
-@Roles('ADMIN')
+@Roles(UserRole.ADMIN)
 export class AdminPaymentsController {
     constructor(
         @InjectRepository(PaymentEntity)
