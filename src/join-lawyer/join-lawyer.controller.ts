@@ -117,16 +117,11 @@ export class JoinLawyerController {
 
     @Get('applications/:id/photo')
     async getPhoto(
-        @Param('id', ParseIntPipe) id: number,
-        @Res({ passthrough: true }) res: Response,
+      @Param('id', ParseIntPipe) id: number,
+      @Res() res: Response,
     ) {
-        const { photo, photoMimeType } = await this.svc.getPhoto(id);
-
-        res.set({
-            'Content-Type': photoMimeType || 'image/jpeg',
-            'Cache-Control': 'public, max-age=3600',
-        });
-
-        return new StreamableFile(photo);
+      const result = await this.svc.getPhoto(id);
+      res.setHeader('Content-Type', result.photoMimeType);
+      return res.send(result.photo);
     }
 }
