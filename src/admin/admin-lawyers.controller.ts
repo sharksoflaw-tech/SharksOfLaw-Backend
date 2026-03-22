@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { JoinLawyerService } from '../join-lawyer/join-lawyer.service';
 import { LawyersService } from '../lawyers/lawyers.service';
+import { ParseIntPipe } from '@nestjs/common';
 
 @Controller('admin/lawyers')
 export class AdminLawyersController {
@@ -21,7 +22,7 @@ export class AdminLawyersController {
     }
 
     @Get('applications/:id')
-    getApplicationById(@Param('id') id: string) {
+    getApplication(@Param('id', ParseIntPipe) id: number) {
         return this.joinLawyerService.getById(id);
     }
 

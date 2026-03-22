@@ -19,7 +19,17 @@ export class LawyersService {
   ) {}
 
   async approveJoinLawyer(applicationId: string) {
-    const app = await this.joinRepo.findOne({ where: { id: applicationId } });
+
+    const appId = Number(applicationId);
+
+    if (Number.isNaN(appId)) {
+      throw new BadRequestException('Invalid application id');
+    }
+
+    const app = await this.joinRepo.findOne({
+      where: { id: appId },
+    });
+
     if (!app) {
       throw new NotFoundException('Application not found');
     }

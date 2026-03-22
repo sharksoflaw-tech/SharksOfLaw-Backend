@@ -80,8 +80,17 @@ export class PaymentsService {
         return { paymentId: payment.id, attemptId: attempt.id, phonepe: resp };
     }
 
-    async createAttemptForJoinLawyer(appId: string, amountInr: number, frontendBaseUrl: string, backendBaseUrl: string) {
-        const app = await this.joinLawyerRepo.findOne({ where: { id: appId } });
+    async createAttemptForJoinLawyer(appId: number, amountInr: number, frontendBaseUrl: string, backendBaseUrl: string) {
+        const numericAppId = appId;
+
+        if (Number.isNaN(numericAppId)) {
+            throw new BadRequestException('Invalid join lawyer application id');
+        }
+
+        const app = await this.joinLawyerRepo.findOne({
+            where: { id: numericAppId },
+        });
+
         if (!app) throw new NotFoundException('Join lawyer application not found');
 
         let payment = await this.paymentsRepo.findOne({ where: { joinLawyerApplicationId: appId } });
@@ -126,7 +135,7 @@ export class PaymentsService {
                                appId,
                            }: {
         consultationId?: number;
-        appId?: string;
+        appId?: number;
     }) {
         let payment;
 

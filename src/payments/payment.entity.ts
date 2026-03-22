@@ -21,8 +21,8 @@ export class PaymentEntity {
     consultationId: number | null;
 
     @Index()
-    @Column({ name: 'join_lawyer_application_id', type: 'uuid', nullable: true })
-    joinLawyerApplicationId: string | null;
+    @Column({ name: 'join_lawyer_application_id', type: 'bigint', nullable: true, unique: true })
+    joinLawyerApplicationId: number | null;
 
     @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;
