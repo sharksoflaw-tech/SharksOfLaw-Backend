@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Express, Response } from 'express';
-
+import { memoryStorage } from 'multer';
 import { JoinLawyerService } from './join-lawyer.service';
 import { CreateJoinLawyerDto } from './dto/create-join-lawyer.dto';
 import { UpdateJoinLawyerDto } from './dto/update-join-lawyer.dto';
@@ -67,16 +67,52 @@ export class JoinLawyerController {
     }
 
     @Post('applications/:id/upload-bar-council-id')
-    @UseInterceptors(FileInterceptor('file'))
-    async uploadBarCouncilId(
-        @Param('id', ParseIntPipe) id: number,
+    @UseInterceptors(
+        FileInterceptor('file', {
+            storage: memoryStorage(),
+            limits: { fileSize: 5 * 1024 * 1024 },
+            fileFilter: (_req, file, cb) => {
+                const ok = [
+                    'image/jpeg',
+                    'image/png',
+                    'image/webp',
+                    'application/pdf',
+                ].includes(file.mimetype);
+
+                cb(ok ? null : new BadRequestException('Only JPG, PNG, WEBP, PDF allowed'), ok);
+            },
+        }),
+    )
+
+    async setBarCouncilId(
+        @Param('id') id: string,
         @UploadedFile() file: Express.Multer.File,
     ) {
         if (!file) {
             throw new BadRequestException('File is required');
         }
 
-        return this.svc.uploadBarCouncilId(id, file);
+        return this.svc.setBarCouncilId(Number(id), {
+            buffer: file.buffer,
+            mimetype: file.mimetype,
+            originalname: file.originalname,
+        });
+    }
+
+    @Get('applications/:id/bar-council-id')
+    async getBarCouncilId(
+        @Param('id') id: string,
+        @Res({ passthrough: true }) res: Response,
+    ) {
+        const { file, mimeType, fileName } = await this.svc.getBarCouncilId(Number(id));
+
+        res.set({
+            'Content-Type': mimeType,
+            'Cache-Control': 'public, max-age=3600',
+            'Content-Disposition': `inline; filename="${fileName}"`,
+        });
+
+        return new StreamableFile(file);
     }
 
     @Get('applications/:id/photo')

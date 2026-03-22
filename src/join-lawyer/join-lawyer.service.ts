@@ -223,7 +223,10 @@ export class JoinLawyerService {
         };
     }
 
-    async uploadBarCouncilId(id: number, file: Express.Multer.File) {
+    async setBarCouncilId(
+        id: number,
+        file: { buffer: Buffer; mimetype: string; originalname?: string },
+    ) {
         const app = await this.repo.findOne({
             where: { id },
         });
@@ -232,18 +235,59 @@ export class JoinLawyerService {
             throw new NotFoundException('Join lawyer application not found');
         }
 
-        const baseUrl = process.env.FILE_BASE_URL || 'http://localhost:3000';
-        const fileUrl = `${baseUrl}/uploads/bar-council-ids/${file.filename}`;
+        const extMap: Record<string, string> = {
+            'image/jpeg': '.jpg',
+            'image/png': '.png',
+            'image/webp': '.webp',
+            'application/pdf': '.pdf',
+        };
 
-        app.barCouncilIdPath = fileUrl;
-        app.barCouncilIdFileName = file.originalname || file.filename;
+        const ext = extMap[file.mimetype];
+        if (!ext) {
+            throw new BadRequestException('Unsupported file type');
+        }
+
+        const dir = path.join(this.uploadRoot, 'join-lawyer', String(id));
+        await fs.mkdir(dir, { recursive: true });
+
+        const fileName = `bar-council-id${ext}`;
+        const fullPath = path.join(dir, fileName);
+        const relativePath = path.join('join-lawyer', String(id), fileName);
+
+        await fs.writeFile(fullPath, file.buffer);
+
+        app.barCouncilIdPath = relativePath;
+        app.barCouncilIdFileName = file.originalname || fileName;
         app.barCouncilIdMimeType = file.mimetype;
 
         await this.repo.save(app);
 
         return {
             success: true,
-            fileUrl,
+            url: `/api/join-lawyer/applications/${id}/bar-council-id`,
+        };
+    }
+
+    async getBarCouncilId(id: number) {
+        const app = await this.repo.findOne({
+            where: { id },
+        });
+
+        if (!app) {
+            throw new NotFoundException('Join lawyer application not found');
+        }
+
+        if (!app.barCouncilIdPath) {
+            throw new NotFoundException('Bar council ID not found');
+        }
+
+        const absolutePath = path.join(this.uploadRoot, app.barCouncilIdPath);
+        const file = await fs.readFile(absolutePath);
+
+        return {
+            file,
+            mimeType: app.barCouncilIdMimeType || 'application/octet-stream',
+            fileName: app.barCouncilIdFileName || 'bar-council-id',
         };
     }
 
