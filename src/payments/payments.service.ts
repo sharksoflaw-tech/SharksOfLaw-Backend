@@ -255,10 +255,7 @@ export class PaymentsService {
             if (payment.joinLawyerApplicationId) {
                 await this.joinLawyerRepo.update(
                     { id: payment.joinLawyerApplicationId },
-                    {
-                        paymentStatus: "SUCCESS",
-                        applicationStatus: "SUBMITTED",
-                    } as any
+                    { status: "SUBMITTED" } as any
                 );
             }
 
