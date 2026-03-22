@@ -81,20 +81,19 @@ export class PaymentsService {
     }
 
     async createAttemptForJoinLawyer(appId: number, amountInr: number, frontendBaseUrl: string, backendBaseUrl: string) {
-        const app = await this.joinLawyerRepo.findOne({ where: { id: appId } as any });
+        const numericAppId = appId;
+
+        if (Number.isNaN(numericAppId)) {
+            throw new BadRequestException('Invalid join lawyer application id');
+        }
+
+        const app = await this.joinLawyerRepo.findOne({
+            where: { id: numericAppId },
+        });
 
         if (!app) throw new NotFoundException('Join lawyer application not found');
 
-        // ✅ ensure payment record exists
-        let payment = await this.paymentsRepo.findOne({
-            where: { joinLawyerApplicationId: appId },
-            order: { createdAt: 'DESC' }, // 👈 IMPORTANT
-        });
-
-        if (payment && payment.status === 'SUCCESS') {
-            throw new BadRequestException('Payment already successful');
-        }
-
+        let payment = await this.paymentsRepo.findOne({ where: { joinLawyerApplicationId: appId } });
         if (!payment) {
             payment = await this.paymentsRepo.save(this.paymentsRepo.create({
                 joinLawyerApplicationId: appId,
@@ -103,16 +102,8 @@ export class PaymentsService {
                 currency: 'INR',
             }));
         } else {
-            // prevent mismatch amounts
-            if (payment.status === 'SUCCESS') {
-                throw new BadRequestException('Payment already successful');
-            }
-
-            // ✅ Allow plan change before success
-            if (payment.amountInr !== amountInr) {
-                payment.amountInr = amountInr;
-                await this.paymentsRepo.save(payment);
-            }
+            if (payment.amountInr !== amountInr) throw new BadRequestException('Amount mismatch for application');
+            if (payment.status === 'SUCCESS') throw new BadRequestException('Payment already successful');
         }
 
         const merchantTransactionId = this.newMerchantTxnId('JOINLAW');
@@ -281,7 +272,6 @@ export class PaymentsService {
         await this.paymentsRepo.save(payment);
 
         console.log("❌ PAYMENT FAILED:", payment.id);
-
         return { success: false, status: "FAILED" };
     }
 
