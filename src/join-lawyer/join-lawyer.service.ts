@@ -40,8 +40,31 @@ export class JoinLawyerService {
     }
 
     async createDraft(dto: CreateJoinLawyerDto) {
+        let userId: string | null = null;
+
+        if (dto.phone && dto.code) {
+            const mobileE164 = `${dto.code}${dto.phone}`.replace(/\s+/g, '');
+
+            const user = await this.usersService.findOrCreateByMobile(
+                mobileE164,
+                dto.email?.trim() || null,
+            );
+
+            const existingActive = await this.findActiveApplicationByUserId(user.id);
+            if (existingActive) {
+                throw new BadRequestException(
+                    `An active lawyer application already exists for this mobile number. Application ID: ${existingActive.id}`,
+                );
+            }
+
+            userId = user.id;
+        }
+
         const app = this.repo.create({
             ...dto,
+            email: dto.email?.trim() || null,
+            officeAddress: dto.officeAddress?.trim() || null,
+            userId,
             status: 'DRAFT',
         });
 
