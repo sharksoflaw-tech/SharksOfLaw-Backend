@@ -17,9 +17,10 @@ export class RolesGuard implements CanActivate {
         const req = ctx.switchToHttp().getRequest();
         const user = req.user;
 
-        // If JWT is not wired, user may be undefined → deny
-        if (!user?.role) return false;
+        if (!user?.roles || !Array.isArray(user.roles)) {
+            return false;
+        }
 
-        return requiredRoles.includes(user.role);
+        return requiredRoles.some((role) => user.roles.includes(role));
     }
 }

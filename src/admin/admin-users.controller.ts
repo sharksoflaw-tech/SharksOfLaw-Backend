@@ -6,9 +6,11 @@ import {
     Query,
     Body,
     UseGuards,
+    NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Raw } from 'typeorm';
 
 import { UserEntity } from '../users/user.entity';
 import { Roles } from './roles.decorator';
@@ -25,9 +27,19 @@ export class AdminUsersController {
     ) {}
 
     @Get()
-    list(@Query('role') role?: 'CLIENT' | 'LAWYER' | 'ADMIN') {
-        const where = role ? {role} : {};
-        return this.usersRepo.find({where});
+    async list(@Query('role') role?: 'CLIENT' | 'LAWYER' | 'ADMIN') {
+        if (!role) {
+            return this.usersRepo.find({
+                order: { createdAt: 'DESC' },
+            });
+        }
+
+        return this.usersRepo.find({
+            where: {
+                roles: Raw((alias) => `:role = ANY(${alias})`, { role }),
+            },
+            order: { createdAt: 'DESC' },
+        });
     }
 
     @Get(':id')
@@ -40,7 +52,19 @@ export class AdminUsersController {
         @Param('id') id: string,
         @Body() dto: SetUserRoleDto,
     ) {
-        await this.usersRepo.update({ id }, { role: dto.role });
+        const user = await this.usersRepo.findOne({ where: { id } });
+
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        const currentRoles = Array.isArray(user.roles) ? user.roles : [];
+
+        if (!currentRoles.includes(dto.role)) {
+            user.roles = [...currentRoles, dto.role];
+            await this.usersRepo.save(user);
+        }
+
         return this.usersRepo.findOne({ where: { id } });
     }
 }

@@ -10,37 +10,32 @@ export class UsersService {
     async findOrCreateByMobile(
         mobileE164: string,
         email?: string | null,
-        roleToAdd: 'CLIENT' | 'LAWYER' | 'ADMIN' = 'CLIENT',
+        rolesToAdd: ('CLIENT' | 'LAWYER' | 'ADMIN')[] = ['CLIENT'],
     ) {
-        const normalizedMobileE164 = String(mobileE164).replace(/\s+/g, '').trim();
-        const normalizedEmail = email?.trim() || null;
-
-        let user = await this.repo.findOne({
-            where: { mobileE164: normalizedMobileE164 },
-        });
+        let user = await this.repo.findOne({ where: { mobileE164 } });
 
         if (!user) {
             user = this.repo.create({
-                mobileE164: normalizedMobileE164,
-                email: normalizedEmail,
-                roles: [roleToAdd],
+                mobileE164,
+                email: email ?? null,
+                roles: [...new Set(rolesToAdd)],
                 mobileVerified: false,
             });
-
             return this.repo.save(user);
         }
 
-        const currentRoles = Array.isArray(user.roles) ? user.roles : [];
-
         let changed = false;
 
-        if (!currentRoles.includes(roleToAdd)) {
-            user.roles = [...currentRoles, roleToAdd];
+        if (email && !user.email) {
+            user.email = email;
             changed = true;
         }
 
-        if (normalizedEmail && !user.email) {
-            user.email = normalizedEmail;
+        const currentRoles = Array.isArray(user.roles) ? user.roles : [];
+        const mergedRoles = [...new Set([...currentRoles, ...rolesToAdd])];
+
+        if (mergedRoles.length !== currentRoles.length) {
+            user.roles = mergedRoles;
             changed = true;
         }
 
