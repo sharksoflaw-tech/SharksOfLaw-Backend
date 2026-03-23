@@ -28,7 +28,7 @@ export class ConsultationsService {
     const mobileE164 = `${code}${dto.phone}`.replace(/\s+/g, '');
 
     // ✅ one identity table for future login
-    const user = await this.usersService.findOrCreateByMobile(mobileE164, dto.email ?? null);
+    const user = await this.usersService.findOrCreateByMobile(mobileE164, dto.email ?? null, [UserRole.CLIENT],);
 
     // ✅ validate optional lawyerProfileId only when provided
     let lawyerProfileId: string | null = null;

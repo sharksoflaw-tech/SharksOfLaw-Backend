@@ -94,7 +94,7 @@ export class JoinLawyerService {
         const user = await this.usersService.findOrCreateByMobile(
             mobileE164,
             normalizedEmail,
-            [UserRole.CLIENT, UserRole.LAWYER],
+            [UserRole.LAWYER],
         );
 
         const existingSubmittedOrReview = await this.repo.findOne({

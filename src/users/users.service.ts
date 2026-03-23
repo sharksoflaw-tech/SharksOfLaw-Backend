@@ -21,7 +21,7 @@ export class UsersService {
             user = this.repo.create({
                 mobileE164,
                 email: email ?? null,
-                roles: [...new Set(rolesToAdd)],
+                roles: [...new Set(rolesToAdd)] as UserRole[],
                 mobileVerified: false,
             });
 
@@ -50,7 +50,7 @@ export class UsersService {
         return user;
     }
 
-    async setRole(userId: string, role: UserRole) {
+    async addRole(userId: string, role: UserRole) {
         const user = await this.repo.findOne({ where: { id: userId } });
         if (!user) return null;
 
