@@ -13,6 +13,7 @@ import {PaymentsModule} from "./payments/payments.module";
 import {AdminModule} from "./admin/admin.module";
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { join } from 'path';
       rootPath: join(process.cwd(), process.env.UPLOAD_ROOT || '/data/uploads'),
       serveRoot: '/data/uploads',
     }),
+    AuthModule,
     UsersModule,
     PaymentsModule,
     AdminModule,

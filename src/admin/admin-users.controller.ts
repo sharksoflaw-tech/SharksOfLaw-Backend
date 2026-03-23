@@ -8,6 +8,7 @@ import {
     UseGuards,
     NotFoundException,
 } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Raw } from 'typeorm';
 
@@ -17,7 +18,7 @@ import { RolesGuard } from './roles.guard';
 import { SetUserRoleDto } from './dto/set-user-role.dto';
 
 @Controller('admin/users')
-@UseGuards(RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
 export class AdminUsersController {
     constructor(

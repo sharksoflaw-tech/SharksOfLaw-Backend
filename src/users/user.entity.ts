@@ -15,6 +15,9 @@ export class UserEntity {
     @Column({ name: 'mobile', type: 'varchar', length: 20 })
     mobileE164: string;
 
+    @Column({ name: 'password_hash', type: 'varchar', length: 255, nullable: true })
+    passwordHash?: string;
+
     @Column({ type: 'varchar', length: 150, nullable: true })
     email: string | null;
 
