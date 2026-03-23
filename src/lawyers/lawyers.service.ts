@@ -14,7 +14,7 @@ export class LawyersService {
       private readonly lawyerRepo: Repository<LawyersEntity>,
 
       @InjectRepository(JoinLawyerEntity)
-      private readonly joinRepo: Repository<JoinLawyerEntity>,
+      private readonly joinLawyerRepo: Repository<JoinLawyerEntity>,
 
       private readonly users: UsersService,
   ) {}
@@ -27,7 +27,7 @@ export class LawyersService {
       throw new BadRequestException('Invalid application id');
     }
 
-    const app = await this.joinRepo.findOne({
+    const app = await this.joinLawyerRepo.findOne({
       where: { id: appId },
     });
 
@@ -78,7 +78,7 @@ export class LawyersService {
     }
 
     app.status = 'APPROVED';
-    await this.joinRepo.save(app);
+    await this.joinLawyerRepo.save(app);
 
     await this.users.addRole(app.userId, UserRole.LAWYER);
 
@@ -114,17 +114,19 @@ export class LawyersService {
   }
 
   async rejectJoinLawyer(id: string, reason: string) {
-    const application = await this.joinLawyerRepo.findOne({
-      where: { id: Number(id) },
-    });
+      const application = await this.joinLawyerRepo.findOne({
+        where: { id: Number(id) },
+      });
 
-    if (!application) {
-      throw new NotFoundException('Application not found');
+      if (!application) {
+        throw new NotFoundException('Application not found');
+      }
+
+      application.status = 'REJECTED';
+
+      // only keep this if your entity actually has this column
+      // application.rejectionReason = reason;
+
+      return this.joinLawyerRepo.save(application);
     }
-
-    application.status = 'REJECTED';
-    application.rejectionReason = reason;
-
-    return this.joinLawyerRepo.save(application);
-  }
 }
