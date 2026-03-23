@@ -116,3 +116,11 @@ ADD CONSTRAINT users_roles_check
 CHECK (
   roles <@ ARRAY['CLIENT', 'LAWYER', 'ADMIN']::text[]
 );
+
+ALTER TABLE users
+ADD COLUMN password_hash varchar(255);
+
+ALTER TABLE users
+ADD COLUMN first_name varchar(100),
+ADD COLUMN last_name varchar(100);
+
