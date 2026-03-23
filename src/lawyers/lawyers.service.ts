@@ -80,7 +80,7 @@ export class LawyersService {
     app.status = 'APPROVED';
     await this.joinRepo.save(app);
 
-    await this.users.setRole(app.userId, UserRole.LAWYER);
+    await this.users.addRole(app.userId, UserRole.LAWYER);
 
     return {
       approved: true,
