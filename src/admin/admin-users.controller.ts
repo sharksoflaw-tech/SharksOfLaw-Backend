@@ -16,6 +16,7 @@ import { UserEntity, UserRole } from '../users/user.entity';
 import { Roles } from './roles.decorator';
 import { RolesGuard } from './roles.guard';
 import { SetUserRoleDto } from './dto/set-user-role.dto';
+import { Delete } from '@nestjs/common';
 
 @Controller('admin/users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -66,5 +67,18 @@ export class AdminUsersController {
         }
 
         return this.usersRepo.findOne({ where: { id } });
+    }
+
+    @Delete(':id')
+    async deleteUser(@Param('id') id: string) {
+      const user = await this.usersRepo.findOne({ where: { id } });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      await this.usersRepo.remove(user);
+
+      return { message: 'User deleted successfully' };
     }
 }
