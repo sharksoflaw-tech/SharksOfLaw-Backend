@@ -112,4 +112,19 @@ export class LawyersService {
       photoUrl: profile.photoPath ? `/lawyers/${profile.id}/photo` : null,
     };
   }
+
+  async rejectJoinLawyer(id: string, reason: string) {
+    const application = await this.joinLawyerRepo.findOne({
+      where: { id: Number(id) },
+    });
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    application.status = 'REJECTED';
+    application.rejectionReason = reason;
+
+    return this.joinLawyerRepo.save(application);
+  }
 }
